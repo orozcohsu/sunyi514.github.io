@@ -1,0 +1,701 @@
+<!doctype html>
+<html class="theme-next use-motion ">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+
+
+  <meta name="keywords" content="hadoop," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="最近忙里偷闲，在刚刚到手的mac上安装了hadoop2.3。由于时间仓促，个别组件甚至没有来得及跑起来，匆匆的记一下。
+设置SSH单节点运行hadoop需要本机ssh连通。生成key的过程没什么特殊的：
+ssh-keygen -t rsacat .ssh/id_rsa.pub &amp;gt;&amp;gt;.ssh/authorized_keys
+然后需要开启ssh服务，具体设置在“系统偏好设置-&amp;gt;共享-">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mac OSX上安装Hadoop2">
+<meta property="og:url" content="http://sunyi514.github.io/2014/03/06/mac-osx上安装hadoop2/index.html">
+<meta property="og:site_name" content="奔跑的兔子">
+<meta property="og:description" content="最近忙里偷闲，在刚刚到手的mac上安装了hadoop2.3。由于时间仓促，个别组件甚至没有来得及跑起来，匆匆的记一下。
+设置SSH单节点运行hadoop需要本机ssh连通。生成key的过程没什么特殊的：
+ssh-keygen -t rsacat .ssh/id_rsa.pub &amp;gt;&amp;gt;.ssh/authorized_keys
+然后需要开启ssh服务，具体设置在“系统偏好设置-&amp;gt;共享-">
+<meta property="og:image" content="http://7xltg5.com1.z0.glb.clouddn.com/yarn_webui.jpg">
+<meta property="og:updated_time" content="2015-09-16T23:59:08.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Mac OSX上安装Hadoop2">
+<meta name="twitter:description" content="最近忙里偷闲，在刚刚到手的mac上安装了hadoop2.3。由于时间仓促，个别组件甚至没有来得及跑起来，匆匆的记一下。
+设置SSH单节点运行hadoop需要本机ssh连通。生成key的过程没什么特殊的：
+ssh-keygen -t rsacat .ssh/id_rsa.pub &amp;gt;&amp;gt;.ssh/authorized_keys
+然后需要开启ssh服务，具体设置在“系统偏好设置-&amp;gt;共享-">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: '',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Mac OSX上安装Hadoop2 | 奔跑的兔子 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-60954885-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">奔跑的兔子</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            <i class="menu-item-icon icon-next-categories"></i> <br />
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            <i class="menu-item-icon icon-next-about"></i> <br />
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Mac OSX上安装Hadoop2
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2014-03-06T16:57:07+08:00" content="2014-03-06">
+            2014-03-06
+          </time>
+        </span>
+
+        
+          <span class="post-category" >
+            &nbsp; | &nbsp; 分类于
+            
+              <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                <a href="/categories/data-system/" itemprop="url" rel="index">
+                  <span itemprop="name">data system</span>
+                </a>
+              </span>
+
+              
+              
+
+            
+          </span>
+        
+
+        
+          
+            <span class="post-comments-count">
+              &nbsp; | &nbsp;
+              <a href="/2014/03/06/mac-osx上安装hadoop2/#comments" itemprop="discussionUrl">
+                <span class="post-comments-count ds-thread-count" data-thread-key="2014/03/06/mac-osx上安装hadoop2/" itemprop="commentsCount"></span>
+              </a>
+            </span>
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><p>最近忙里偷闲，在刚刚到手的mac上安装了hadoop2.3。由于时间仓促，个别组件甚至没有来得及跑起来，匆匆的记一下。</p>
+<h1 id="设置SSH">设置SSH</h1><p>单节点运行hadoop需要本机ssh连通。生成key的过程没什么特殊的：</p>
+<figure class="highlight ruby"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t rsa</span><br><span class="line">cat .ssh/id_rsa.pub <span class="prompt">&gt;&gt;</span>.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
+<p>然后需要开启ssh服务，具体设置在“系统偏好设置-&gt;共享-&gt;远程登录”，把这个勾上即可。</p>
+<p>如果发现配置之后不生效，多半是权限问题，可以检查一下<code>authorized_keys</code>是不是权限是600，另外家目录（比如对我的环境来讲就是<code>/Users/sunyi</code>）的权限是不是755。</p>
+<h1 id="环境变量">环境变量</h1><p>首先保证安装了java7，然后到官网下载hadoop2.3版本，解压（方便起见就不新开用户了，直接放到当前用户目录下）。接下来就需要做些环境变量设置。</p>
+<h2 id="hadoop环境变量">hadoop环境变量</h2><p>在/etc/bashrc文件中增加如下设置：</p>
+<figure class="highlight xquery"><table><tr><td class="code"><pre><span class="line">export HADOOP_HOME=/Users/sunyi/hadoop-<span class="number">2.3</span>.<span class="number">0</span></span><br><span class="line">export PATH=<span class="variable">$PATH</span>:<span class="variable">$HADOOP</span>_HOME/bin:<span class="variable">$HADOOP</span>_HOME/sbin</span><br></pre></td></tr></table></figure>
+<p>这样就能直接访问hadoop shell了，可以用如下命令做个测试:</p>
+<figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">hadoop <span class="property">version</span></span><br></pre></td></tr></table></figure>
+<h2 id="Java环境变量">Java环境变量</h2><p>在<code>hadoop-env.sh</code>/<code>mapred-env.sh</code>/<code>yarn-env.sh</code>（位于 ${HADOOP_HOME}/ etc/ hadoop/）里面都设一下，根据<a href="http://han.guokai.blog.163.com/blog/static/136718271201301183938165/" target="_blank" rel="external">这里</a>的建议做了如下设置：</p>
+<figure class="highlight autohotkey"><table><tr><td class="code"><pre><span class="line">export JAV<span class="built_in">A_HOME</span>=<span class="escape">`/</span>usr/libexec/jav<span class="built_in">a_home</span>`</span><br></pre></td></tr></table></figure>
+<p>我在配置的时候，一开始漏做了java环境变量，结果启动hadoop后跑job就报<a href="http://stackoverflow.com/questions/21275735/can-not-run-testdistributedshell-in-eclipse" target="_blank" rel="external">这个错误</a>。</p>
+<h1 id="Hadoop配置项">Hadoop配置项</h1><p>这里就直接罗列一下配置项了。</p>
+<p><strong>core-site.xml</strong></p>
+<figure class="highlight pf"><table><tr><td class="code"><pre><span class="line"><span class="variable">&lt;configuration&gt;</span>  </span><br><span class="line">   <span class="variable">&lt;property&gt;</span>  </span><br><span class="line">     <span class="variable">&lt;name&gt;</span>fs.<span class="keyword">default</span>.name<span class="variable">&lt;/name&gt;</span>  </span><br><span class="line">       <span class="variable">&lt;value&gt;</span>hdfs://localhost:<span class="number">9000</span><span class="variable">&lt;/value&gt;</span>  </span><br><span class="line">   <span class="variable">&lt;/property&gt;</span>  </span><br><span class="line"> <span class="variable">&lt;/configuration&gt;</span></span><br></pre></td></tr></table></figure>
+<p><strong>hdfs-site.xml</strong></p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">configuration</span>&gt;</span>  </span><br><span class="line">   <span class="tag">&lt;<span class="title">property</span>&gt;</span>  </span><br><span class="line">     <span class="tag">&lt;<span class="title">name</span>&gt;</span>dfs.replication<span class="tag">&lt;/<span class="title">name</span>&gt;</span>  </span><br><span class="line">     <span class="tag">&lt;<span class="title">value</span>&gt;</span>1<span class="tag">&lt;/<span class="title">value</span>&gt;</span>  </span><br><span class="line">   <span class="tag">&lt;/<span class="title">property</span>&gt;</span>  </span><br><span class="line">   <span class="tag">&lt;<span class="title">property</span>&gt;</span>  </span><br><span class="line">     <span class="tag">&lt;<span class="title">name</span>&gt;</span>dfs.namenode.name.dir<span class="tag">&lt;/<span class="title">name</span>&gt;</span>  </span><br><span class="line">     <span class="tag">&lt;<span class="title">value</span>&gt;</span>file:/Users/sunyi/hdfs/namenode<span class="tag">&lt;/<span class="title">value</span>&gt;</span>  </span><br><span class="line">   <span class="tag">&lt;/<span class="title">property</span>&gt;</span>  </span><br><span class="line">   <span class="tag">&lt;<span class="title">property</span>&gt;</span>  </span><br><span class="line">     <span class="tag">&lt;<span class="title">name</span>&gt;</span>dfs.datanode.data.dir<span class="tag">&lt;/<span class="title">name</span>&gt;</span>  </span><br><span class="line">     <span class="tag">&lt;<span class="title">value</span>&gt;</span>file:/Users/sunyi/hdfs/datanode<span class="tag">&lt;/<span class="title">value</span>&gt;</span>  </span><br><span class="line">   <span class="tag">&lt;/<span class="title">property</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="title">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><strong>mapred-site.xml</strong></p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">configuration</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="title">property</span>&gt;</span></span><br><span class="line">     <span class="tag">&lt;<span class="title">name</span>&gt;</span>mapreduce.framework.name<span class="tag">&lt;/<span class="title">name</span>&gt;</span></span><br><span class="line">     <span class="tag">&lt;<span class="title">value</span>&gt;</span>yarn<span class="tag">&lt;/<span class="title">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><strong>yarn-site.xml</strong></p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">configuration</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="title">property</span>&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="title">name</span>&gt;</span>yarn.nodemanager.aux-services<span class="tag">&lt;/<span class="title">name</span>&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="title">value</span>&gt;</span>mapreduce_shuffle<span class="tag">&lt;/<span class="title">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="title">property</span>&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="title">name</span>&gt;</span>yarn.nodemanager.aux-services.mapreduce_shuffle.class<span class="tag">&lt;/<span class="title">name</span>&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="title">value</span>&gt;</span>org.apache.hadoop.mapred.ShuffleHandler<span class="tag">&lt;/<span class="title">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">property</span>&gt;</span> </span><br><span class="line"><span class="tag">&lt;/<span class="title">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>其中<code>hdfs-site.xml</code>注意提前建好相应的目录，<code>yarn-site.xml</code>配置时注意不要用以前2.0版本时的配置，也就是不要用mapreduce.shuffle或者mapreduce-shuffle这样的写法，如果这样写的话，会出现启动后nodemanager启动失败，还有job运行失败等现象。</p>
+<h1 id="启动Hadoop">启动Hadoop</h1><p>首先格式化hdfs，然后依次启动hdfs和yarn。</p>
+<figure class="highlight dos"><table><tr><td class="code"><pre><span class="line">hadoop namenode -<span class="built_in">format</span></span><br><span class="line">./sbin/<span class="built_in">start</span>-dfs.sh</span><br><span class="line">./sbin/<span class="built_in">start</span>-yarn.sh</span><br></pre></td></tr></table></figure>
+<p>然后可以用jps确认下进程全部顺利启动，会看到下面这些进程，有问题就检查下log。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="number">8431</span> ResourceManager</span><br><span class="line"><span class="number">8525</span> NodeManager</span><br><span class="line"><span class="number">9095</span> Jps</span><br><span class="line"><span class="number">8313</span> SecondaryNameNode</span><br><span class="line"><span class="number">8207</span> DataNode</span><br><span class="line"><span class="number">8120</span> NameNode</span><br></pre></td></tr></table></figure>
+<p>成功启动后，就可以用浏览器看看<code>localhost:50070</code>和<code>localhost:8088</code>的hdfs和yarn管理页面了。</p>
+<h1 id="Job测试">Job测试</h1><p>找一个文本，传到hdfs上面，然后运行一下hadoop自带的wordcount job：</p>
+<figure class="highlight stylus"><table><tr><td class="code"><pre><span class="line">hadoop jar ./share/hadoop/mapreduce/hadoop-mapreduce-examples-*<span class="class">.jar</span> wordcount <span class="tag">input</span><span class="class">.txt</span> out</span><br></pre></td></tr></table></figure>
+<p>或者运行一个不依赖hdfs数据的job也可以，比如pi计算：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">hadoop jar ./share/hadoop/mapreduce/hadoop-mapreduce-examples-*.jar pi <span class="number">10</span> <span class="number">100000</span></span><br></pre></td></tr></table></figure>
+<p>运行成功后yarn管理页如下图：<br> <img src="http://7xltg5.com1.z0.glb.clouddn.com/yarn_webui.jpg" alt="yarn_webui"><br>到此为止，就算安装完成了。至于开头说到的没有跑起来的组件，是hadoop 2中单独分离出来的job history server。等以后有时间了再来配置。</p>
+<h1 id="日志警告">日志警告</h1><p>在运行job或者是其他任何hadoop命令时，都会碰到下面两个warning。不处理也没关系，不影响学习使用：</p>
+<ul>
+<li><p><strong>Unable to load realm info from SCDynamicStore</strong>：这个是mac下特有的安全方面的问题警告，可以通过在<code>hadoop-env.sh</code>中增加如下配置消除。</p>
+<figure class="highlight 1c"><table><tr><td class="code"><pre><span class="line">HADOOP_OPTS=<span class="string">"$&#123;HADOOP_OPTS&#125; -Djava.security.krb5.realm= </span></span><br><span class="line">-Djava.security.krb5.kdc= -Djava.security.krb5.conf=/dev/null<span class="string">"</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>Unable to load native-hadoop library for your platform</strong>：这个警告的原因是hadoop自带的native lib是32位的，在64位的系统上自然是版本不一致。如果需要解决这个问题，需要自己编译一下，替换掉原来的lib即可，由于这里仅仅是学习用，就不做这件事情了。</p>
+</li>
+</ul>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/hadoop/" rel="tag">#hadoop</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2014/09/27/the-log阅读笔记/" rel="prev">The Log阅读笔记</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2013/09/01/数据仓库中的sql性能优化（hive篇）/" rel="next">数据仓库中的SQL性能优化（Hive篇）</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+              <div class="ds-thread" data-thread-key="2014/03/06/mac-osx上安装hadoop2/"
+                   data-title="Mac OSX上安装Hadoop2" data-url="http://sunyi514.github.io/2014/03/06/mac-osx上安装hadoop2/">
+              </div>
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xltg5.com1.z0.glb.clouddn.com/author.jpg" alt="奔跑的兔子" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">奔跑的兔子</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"></p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">7</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">1</span>
+              <span class="site-state-item-name">分类</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">9</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/u/1731546452" target="_blank">weibo</a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#设置SSH"><span class="nav-number">1.</span> <span class="nav-text">设置SSH</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#环境变量"><span class="nav-number">2.</span> <span class="nav-text">环境变量</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#hadoop环境变量"><span class="nav-number">2.1.</span> <span class="nav-text">hadoop环境变量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java环境变量"><span class="nav-number">2.2.</span> <span class="nav-text">Java环境变量</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Hadoop配置项"><span class="nav-number">3.</span> <span class="nav-text">Hadoop配置项</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#启动Hadoop"><span class="nav-number">4.</span> <span class="nav-text">启动Hadoop</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Job测试"><span class="nav-number">5.</span> <span class="nav-text">Job测试</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#日志警告"><span class="nav-number">6.</span> <span class="nav-text">日志警告</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp;  2013 - 
+  <span itemprop="copyrightYear">2015</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">奔跑的兔子</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"sunyi514"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+    
+     
+     
+  	<script src="/js/ua-parser.min.js"></script>
+  	<script src="/js/hook-duoshuo.js"></script>
+  
+
+    
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1102 @@
+<!doctype html>
+<html class="theme-next use-motion ">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+
+
+  <meta name="keywords" content="mysql," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="做数据仓库的头两年，使用高配置单机 + MySQL的方式来实现所有的计算（包括数据的ETL，以及报表计算。没有OLAP）。用过MySQL自带的MYISAM和列存储引擎Infobright。这篇文章总结了自己和团队在那段时间碰到的一些常见性能问题和解决方案。
+P.S.如果没有特别指出，下面说的mysql都是指用MYISAM做存储引擎。
+利用已有数据，避免重复计算业务需求中往往有计算一周/一个月的某某">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据仓库中的sql性能优化（MySQL篇）">
+<meta property="og:url" content="http://sunyi514.github.io/2013/04/30/数据仓库中的sql性能优化（mysql篇）/index.html">
+<meta property="og:site_name" content="奔跑的兔子">
+<meta property="og:description" content="做数据仓库的头两年，使用高配置单机 + MySQL的方式来实现所有的计算（包括数据的ETL，以及报表计算。没有OLAP）。用过MySQL自带的MYISAM和列存储引擎Infobright。这篇文章总结了自己和团队在那段时间碰到的一些常见性能问题和解决方案。
+P.S.如果没有特别指出，下面说的mysql都是指用MYISAM做存储引擎。
+利用已有数据，避免重复计算业务需求中往往有计算一周/一个月的某某">
+<meta property="og:updated_time" content="2015-09-16T23:59:24.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="数据仓库中的sql性能优化（MySQL篇）">
+<meta name="twitter:description" content="做数据仓库的头两年，使用高配置单机 + MySQL的方式来实现所有的计算（包括数据的ETL，以及报表计算。没有OLAP）。用过MySQL自带的MYISAM和列存储引擎Infobright。这篇文章总结了自己和团队在那段时间碰到的一些常见性能问题和解决方案。
+P.S.如果没有特别指出，下面说的mysql都是指用MYISAM做存储引擎。
+利用已有数据，避免重复计算业务需求中往往有计算一周/一个月的某某">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: '',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> 数据仓库中的sql性能优化（MySQL篇） | 奔跑的兔子 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-60954885-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">奔跑的兔子</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            <i class="menu-item-icon icon-next-categories"></i> <br />
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            <i class="menu-item-icon icon-next-about"></i> <br />
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              数据仓库中的sql性能优化（MySQL篇）
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2013-04-30T17:46:17+08:00" content="2013-04-30">
+            2013-04-30
+          </time>
+        </span>
+
+        
+          <span class="post-category" >
+            &nbsp; | &nbsp; 分类于
+            
+              <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                <a href="/categories/data-system/" itemprop="url" rel="index">
+                  <span itemprop="name">data system</span>
+                </a>
+              </span>
+
+              
+              
+
+            
+          </span>
+        
+
+        
+          
+            <span class="post-comments-count">
+              &nbsp; | &nbsp;
+              <a href="/2013/04/30/数据仓库中的sql性能优化（mysql篇）/#comments" itemprop="discussionUrl">
+                <span class="post-comments-count ds-thread-count" data-thread-key="2013/04/30/数据仓库中的sql性能优化（mysql篇）/" itemprop="commentsCount"></span>
+              </a>
+            </span>
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><p>做数据仓库的头两年，使用高配置单机 + MySQL的方式来实现所有的计算（包括数据的ETL，以及报表计算。没有OLAP）。用过MySQL自带的MYISAM和列存储引擎Infobright。这篇文章总结了自己和团队在那段时间碰到的一些常见性能问题和解决方案。</p>
+<p>P.S.如果没有特别指出，下面说的mysql都是指用MYISAM做存储引擎。</p>
+<h1 id="利用已有数据，避免重复计算">利用已有数据，避免重复计算</h1><p>业务需求中往往有计算一周/一个月的某某数据，比如计算最近一周某个特定页面的PV/UV。这里出现的问题就是实现的时候直接取整周的日志数据，然后进行计算。这样其实就出现了重复计算，某一天的数据在不同的日子里被重复计算了7次。</p>
+<p>解决办法非常之简单，就是把计算进行切分，如果是算PV，做法就是每天算好当天的PV，那么一周的PV就把算好的7天的PV相加。如果是算UV，那么每天从日志数据取出相应的访客数据，把最近七天的访客数据单独保存在一个表里面，计算周UV的时候直接用这个表做计算，而不需要从原始日志数据中抓上一大把数据来算了。</p>
+<p>这是一个非常简单的问题，甚至不需要多少SQL的知识，但是在开发过程中往往被视而不见。这就是只实现业务而忽略性能的表现。从小规模数据仓库做起的工程师，如果缺乏这方面的意识和做事规范，就容易出现这种问题，等到数据仓库的数据量变得比较大的时候，才会发现。</p>
+<h1 id="case_when关键字的使用方法">case when关键字的使用方法</h1><p><code>case when</code>这个关键字，在做聚合的时候，可以很方便的将一份数据在一个SQL语句中进行分类的统计。举个例子，比如下面有一张成绩表(表名定为<code>scores</code>)： </p>
+<table>
+<thead>
+<tr>
+<th>name</th>
+<th>course</th>
+<th>score</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>小明</td>
+<td>语文</td>
+<td>90</td>
+</tr>
+<tr>
+<td>小张</td>
+<td>语文</td>
+<td>94</td>
+</tr>
+<tr>
+<td>小红</td>
+<td>语文</td>
+<td>95</td>
+</tr>
+<tr>
+<td>小明</td>
+<td>数学</td>
+<td>96</td>
+</tr>
+<tr>
+<td>小张</td>
+<td>数学</td>
+<td>98</td>
+</tr>
+<tr>
+<td>小红</td>
+<td>数学</td>
+<td>94</td>
+</tr>
+<tr>
+<td>小明</td>
+<td>英语</td>
+<td>99</td>
+</tr>
+<tr>
+<td>小张</td>
+<td>英语</td>
+<td>96</td>
+</tr>
+<tr>
+<td>小红</td>
+<td>英语</td>
+<td>93</td>
+</tr>
+</tbody>
+</table>
+<p>现在需要统计小张的平均成绩，小明的平均成绩和小明的语文成绩。SQL实现如下：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">select</span> </span><br><span class="line">        <span class="keyword">avg</span> (<span class="keyword">case</span> <span class="keyword">when</span> <span class="keyword">name</span> =<span class="string">'小张'</span> <span class="keyword">then</span> score <span class="keyword">end</span>) <span class="keyword">as</span> xz_avg_score,</span><br><span class="line">        <span class="keyword">avg</span> (<span class="keyword">case</span> <span class="keyword">when</span> <span class="keyword">name</span> =<span class="string">'小明'</span> <span class="keyword">then</span> score <span class="keyword">end</span>) <span class="keyword">as</span> xm_avg_score,</span><br><span class="line">        <span class="keyword">avg</span> (<span class="keyword">case</span> <span class="keyword">when</span> <span class="keyword">name</span> =<span class="string">'小明'</span> <span class="keyword">and</span> course = <span class="string">'语文'</span> <span class="keyword">then</span> score <span class="keyword">end</span>) <span class="keyword">as</span> xm_yuwen_score </span><br><span class="line"><span class="keyword">from</span> scores;</span></span><br></pre></td></tr></table></figure>
+<p>如果现在这个成绩表有1200万条的数据，包含了400万的名字 * 3个科目，上面的计算需要多长时间？我做了一个简单的测试，答案是5.5秒。<br>而如果我们把sql改成下面的写法：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">select</span> </span><br><span class="line">       <span class="keyword">avg</span> (<span class="keyword">case</span> <span class="keyword">when</span> <span class="keyword">name</span> =<span class="string">'小张'</span> <span class="keyword">then</span> score <span class="keyword">end</span>) <span class="keyword">as</span> xz_avg_score,</span><br><span class="line">       <span class="keyword">avg</span> (<span class="keyword">case</span> <span class="keyword">when</span> <span class="keyword">name</span> =<span class="string">'小明'</span> <span class="keyword">then</span> score <span class="keyword">end</span>) <span class="keyword">as</span> xm_avg_score,</span><br><span class="line">       <span class="keyword">avg</span> (<span class="keyword">case</span> <span class="keyword">when</span> <span class="keyword">name</span> =<span class="string">'小明'</span> <span class="keyword">and</span> course = <span class="string">'语文'</span> <span class="keyword">then</span> score <span class="keyword">end</span>) </span><br><span class="line"><span class="keyword">as</span> xm_yuwen_score </span><br><span class="line"><span class="keyword">from</span> scores <span class="keyword">where</span> <span class="keyword">name</span> <span class="keyword">in</span> (<span class="string">'小张'</span>, <span class="string">'小明'</span>);</span></span><br></pre></td></tr></table></figure>
+<p>这样的话，只需要3.3秒就能完成。</p>
+<p>之所以后面一种写法总是比前面一种写法快，不同之处就在于是否先在<code>where</code>里面把数据过滤掉。前一种写法扫描了三遍全表的数据（做一个<code>case when</code>扫一遍），后面的写法扫描一遍全表，把数据过滤了之后，<code>case when</code>就不用过这么多数据量了。</p>
+<p>跟进一步说，如果在name字段上有索引，那么后一种写法将会更快，测试结果只用0.05秒，而前面一种情况，sql优化器是判断不出来能用索引的，时间依然是5.5秒。</p>
+<p>在实际工作中，开发经常只是为了实现功能逻辑，而习惯了在<code>case when</code>中限制条件取数据。这样在出现类似例子中的需求时，没有把应该限制的条件写到<code>where</code>里面。这是在实际代码中发现最多的一类问题。</p>
+<h1 id="分页取数方式">分页取数方式</h1><p>在数据仓库中有一个重要的基础步骤，就是对数据进行清洗。比如数据源的数据如果以JSON方式存储，在mysql的数据仓库就必须将json中需要的字段提取出来，做成单独的表字段。这个步骤用sql直接处理很麻烦，所以可以用主流编程语言（比如java）的json库进行解析。解析的时候需要读取数据，一次性读取进来是不可能的，所以要分批读取（相当于分页了）。</p>
+<p>最初的实现方式就是标记住每次取数据的偏移量，然后一批批读取：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">select</span> json_obj <span class="keyword">from</span> <span class="keyword">t</span> <span class="keyword">limit</span> <span class="number">10000</span>,<span class="number">10000</span>;</span></span><br><span class="line"><span class="operator"><span class="keyword">select</span> json_obj <span class="keyword">from</span> <span class="keyword">t</span> <span class="keyword">limit</span> <span class="number">20000</span>,<span class="number">10000</span>;</span></span><br><span class="line"><span class="operator"><span class="keyword">select</span> json_obj <span class="keyword">from</span> <span class="keyword">t</span> <span class="keyword">limit</span> <span class="number">30000</span>,<span class="number">10000</span>;</span></span><br><span class="line"><span class="comment">/*略去很多行……*/</span></span><br><span class="line"><span class="operator"><span class="keyword">select</span> json_obj <span class="keyword">from</span> <span class="keyword">t</span> <span class="keyword">limit</span> <span class="number">990000</span>,<span class="number">10000</span>;</span></span><br></pre></td></tr></table></figure>
+<p>这样的代码，在开始几句sql的时候执行速度还行，但是到后面会越来越慢，因为每次要读取大量数据再丢弃，其实是一种浪费。</p>
+<p>高效的实现方式，可以是用表中的主键进行分页。如果数据是按照主键排序的，那么可以是这样（这么做是要求主键的取值序列是连续的。假设主键的取值序列我们比较清楚，是从10001-1000000的连续值）：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">select</span> json_obj <span class="keyword">from</span> <span class="keyword">t</span> <span class="keyword">where</span> <span class="keyword">t</span>.<span class="keyword">id</span> &gt; <span class="number">10000</span> <span class="keyword">limit</span> <span class="number">10000</span>;</span></span><br><span class="line"><span class="operator"><span class="keyword">select</span> json_obj <span class="keyword">from</span> <span class="keyword">t</span> <span class="keyword">where</span> <span class="keyword">t</span>.<span class="keyword">id</span> &gt; <span class="number">20000</span> <span class="keyword">limit</span> <span class="number">10000</span>;</span></span><br><span class="line"><span class="operator"><span class="keyword">select</span> json_obj <span class="keyword">from</span> <span class="keyword">t</span> <span class="keyword">where</span> <span class="keyword">t</span>.<span class="keyword">id</span> &gt; <span class="number">30000</span> <span class="keyword">limit</span> <span class="number">10000</span>;</span></span><br><span class="line"><span class="comment">/*略去很多行……*/</span></span><br><span class="line"><span class="operator"><span class="keyword">select</span> json_obj <span class="keyword">from</span> <span class="keyword">t</span> <span class="keyword">where</span> <span class="keyword">t</span>.<span class="keyword">id</span> &gt; <span class="number">990000</span> <span class="keyword">limit</span> <span class="number">10000</span>;</span></span><br></pre></td></tr></table></figure>
+<p>就算数据不是按主键排序的，也可以通过限制主键的范围来分页。这样处理的话，主键的取值序列不连续也没有太大问题，就是每次拿到的数据会比理想中的少一些，反正是用在数据处理，不影响正确性：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">select</span> json_obj <span class="keyword">from</span> <span class="keyword">t</span> <span class="keyword">where</span> <span class="keyword">t</span>.<span class="keyword">id</span> &gt; <span class="number">10000</span> <span class="keyword">and</span> <span class="keyword">t</span>.<span class="keyword">id</span> &lt;= <span class="number">20000</span>;</span></span><br><span class="line"><span class="operator"><span class="keyword">select</span> json_obj <span class="keyword">from</span> <span class="keyword">t</span> <span class="keyword">where</span> <span class="keyword">t</span>.<span class="keyword">id</span> &gt; <span class="number">20000</span> <span class="keyword">and</span> <span class="keyword">t</span>.<span class="keyword">id</span> &lt;= <span class="number">30000</span>;</span></span><br><span class="line"><span class="operator"><span class="keyword">select</span> json_obj <span class="keyword">from</span> <span class="keyword">t</span> <span class="keyword">where</span> <span class="keyword">t</span>.<span class="keyword">id</span> &gt; <span class="number">30000</span> <span class="keyword">and</span> <span class="keyword">t</span>.<span class="keyword">id</span> &lt;= <span class="number">40000</span>;</span></span><br><span class="line"><span class="comment">/*略去很多行……*/</span></span><br><span class="line"><span class="operator"><span class="keyword">select</span> json_obj <span class="keyword">from</span> <span class="keyword">t</span> <span class="keyword">where</span> <span class="keyword">t</span>.<span class="keyword">id</span> &gt; <span class="number">990000</span> <span class="keyword">and</span> <span class="keyword">t</span>.<span class="keyword">id</span> &lt;= <span class="number">1000000</span>;</span></span><br></pre></td></tr></table></figure>
+<p>这样的话，由于主键上面有索引，取数据速度就不会受到数据的具体位置的影响了。</p>
+<h1 id="索引使用">索引使用</h1><p>索引的使用是关系数据库的SQL优化中一个非常重要的主题，也是一个常识性的东西。但是工程师在实际开发中往往是加完索引就觉得万事大吉了，也不去检查索引是否被正确的使用了，所以会经常出一些瞎猫碰到死耗子或者是似是而非的情况。</p>
+<h2 id="索引调整">索引调整</h2><p>前面说到开发人员在对索引的了解似是而非的时候只知道要加索引，而不知道为什么加。</p>
+<p>比如现在有一个数据集，对应非常常见的网站统计场景。这个数据集有两个表组成，其中一个是流量表<code>item_visits</code>，每条记录表示某一个商品（item）被访问了一次，包括访问者的一些信息，比如用户id，用户名等等，有将近800万条数据。示例如下：</p>
+<table>
+<thead>
+<tr>
+<th>item_id</th>
+<th>visitor_id</th>
+<th>visitor_name</th>
+<th>visitor_city</th>
+<th>url</th>
+<th>……</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>55</td>
+<td>用户001</td>
+<td>1</td>
+<td>……</td>
+<td>……</td>
+</tr>
+<tr>
+<td>10</td>
+<td>245</td>
+<td>用户002</td>
+<td>2</td>
+<td>……</td>
+<td>……</td>
+</tr>
+<tr>
+<td>3</td>
+<td>2</td>
+<td>用户003</td>
+<td>1</td>
+<td>……</td>
+<td>……</td>
+</tr>
+<tr>
+<td>10</td>
+<td>148</td>
+<td>用户004</td>
+<td>3</td>
+<td>……</td>
+<td>……</td>
+</tr>
+<tr>
+<td>3</td>
+<td>75</td>
+<td>用户005</td>
+<td>4</td>
+<td>……</td>
+<td>……</td>
+</tr>
+<tr>
+<td>7</td>
+<td>422</td>
+<td>用户006</td>
+<td>4</td>
+<td>……</td>
+<td>……</td>
+</tr>
+<tr>
+<td>3</td>
+<td>10</td>
+<td>用户007</td>
+<td>……</td>
+<td>……</td>
+<td>……</td>
+</tr>
+<tr>
+<td>……</td>
+<td>……</td>
+<td>……</td>
+<td>……</td>
+<td>……</td>
+<td>……</td>
+</tr>
+</tbody>
+</table>
+<p>另一个表是商品表<code>items</code>，包含1200多种商品，字段有商品名字和所属种类：</p>
+<table>
+<thead>
+<tr>
+<th>item_id</th>
+<th>item_name</th>
+<th>item_type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>毛巾</td>
+<td>生活用品</td>
+</tr>
+<tr>
+<td>2</td>
+<td>脸盆</td>
+<td>生活用品</td>
+</tr>
+<tr>
+<td>……</td>
+<td>……</td>
+<td>……</td>
+</tr>
+</tbody>
+</table>
+<p>现在有一个需求，计算每个商品种类（item_type）被访问的次数。sql的实现不难：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">select</span> item_type, <span class="keyword">count</span>(*) <span class="keyword">as</span> visit_num</span><br><span class="line"><span class="keyword">from</span> items a</span><br><span class="line"><span class="keyword">join</span> item_visit b <span class="keyword">using</span> (item_id)</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> item_type;</span></span><br></pre></td></tr></table></figure>
+<p>开发人员知道，在join的时候，其中的一个表的join key要加索引，然后他发现<code>visit</code>表在<code>item_id</code>字段上已经有索引了，所以就打完收工了。到这里为止一切都没有问题。但是后来这个需求有改动，需要限制用户的城市是某个固定城市，比如<code>visitor_city = 1</code>，那么显然sql变成了：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">select</span> item_type, <span class="keyword">count</span>(*) <span class="keyword">as</span> visit_num</span><br><span class="line"><span class="keyword">from</span> items a</span><br><span class="line"><span class="keyword">join</span> item_visit b <span class="keyword">using</span> (item_id)</span><br><span class="line"><span class="keyword">where</span> visitor_city = <span class="number">1</span></span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> item_type;</span></span><br></pre></td></tr></table></figure>
+<p>开发人员按照需求修改sql之后对于索引的调整无动于衷，因为他觉得，我已经用上索引了呀。而实际上很明显的，只需要在<code>visitor_city</code>和<code>items</code>表的<code>item_id</code>上都加上索引，就能极大的减少时间。原因就在于开发人员“感觉”能用上索引，而且开发阶段试运行时间没问题就OK，并不关心是不是有更好的索引使用方式，甚至不确认是否用上了索引。在这样的一个真实案例中，原有的sql在后期出现了运行缓慢的现象，才逐渐被发掘出问题。</p>
+<h2 id="覆盖索引">覆盖索引</h2><p>针对上面那个需求（不限制city），假设现在两个表的的item_id字段都有索引，而且把<code>count(*)</code>换成<code>count(visitor_city)</code>，还是会得到完全一样的结果，但是会对执行时间有什么影响？</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">select</span> item_type, <span class="keyword">count</span>(visitor_city) <span class="keyword">as</span> visit_num</span><br><span class="line"><span class="keyword">from</span> items a</span><br><span class="line"><span class="keyword">join</span> item_visit b <span class="keyword">using</span> (item_id)</span><br><span class="line"><span class="keyword">group</span> <span class="keyword">by</span> item_type;</span></span><br></pre></td></tr></table></figure>
+<p>测试结果表明，<code>count(*)</code>版本用时57秒，<code>count(visitor_city)</code>版本用时70秒。原因在哪里？主要就在于<code>count(*)</code>版本中<code>item_visits</code>表只需要用到<code>item_id</code>，所以可以直接用索引来代替数据访问，这就是覆盖索引。<br>在实际开发中，一方面要创造使用覆盖索引的机会，不要无谓的增加不需要的字段到查询语句中，上面的案例就是反面例子，实际开发中就有这样的情况发生。另一方面，根据具体的查询也要在成本允许的情况下构造覆盖索引，这样比普通的索引有更少的IO，自然有更快的访问速度。</p>
+<h2 id="强制索引">强制索引</h2><p>有时候mysql的执行计划会不恰当的使用索引，这个时候就要求开发人员有一定的排查能力，并且根据实际情况调整索引。当然，这种情况还是比较少见的。Mysql用错索引的主要原因在于mysql是根据IO和CPU的代价来估算是否用索引，或者用哪种索引，而这个估算基于的统计信息有可能不准确。</p>
+<p>强制使用索引主要在两种场景下碰到。第一种是针对where过滤条件的索引，这个时候的语法是<code>force index (index_name)</code>。比如在ETL中常见的数据抽取，利用时间戳增量抽取当天新增或者更新的数据：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">select</span> * <span class="keyword">from</span> <span class="keyword">user</span> <span class="keyword">where</span> update_timestamp &gt;= <span class="keyword">curdate</span>() – <span class="number">1</span>;</span></span><br></pre></td></tr></table></figure>
+<p>一般在更新时间戳上会有索引，但是有时候mysql会判断出某一天的更新量特别大，比如超过了20%，那么根据数据的选择性，mysql决定不用索引。但实际上这个判断有可能是不准确的，如果表比较大而且在线上服务时间较长，还是有可能发生的，这个时候可以通过强制使用索引保证抽取的稳定性（当然，这要基于你对业务的了解，保证抽取量能维持在一个稳定的水平，不会发生超大更新量的情况）：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">select</span> * <span class="keyword">from</span> <span class="keyword">user</span> <span class="keyword">force</span> <span class="keyword">index</span> (update_timestamp) </span><br><span class="line"><span class="keyword">where</span> update_timestamp &gt;= <span class="keyword">curdate</span>() – <span class="number">1</span>;</span></span><br></pre></td></tr></table></figure>
+<p>强制使用索引的第二种情况，是join时对索引的选择。数据仓库中有时候会出现一种计算场景，对一个按日统计的报表中某一天的小部分数据进行更新。比如有一个按日统计的用户pv表（<code>user_pv_byday</code>，一天约50万用户，表中有1个月数据，共1500万）：</p>
+<table>
+<thead>
+<tr>
+<th>user_id</th>
+<th>pv</th>
+<th>stat_date</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>10</td>
+<td>2013-01-01</td>
+</tr>
+<tr>
+<td>2</td>
+<td>15</td>
+<td>2013-01-01</td>
+</tr>
+<tr>
+<td>……</td>
+<td>……</td>
+<td>……</td>
+</tr>
+<tr>
+<td>1</td>
+<td>14</td>
+<td>2013-01-02</td>
+</tr>
+<tr>
+<td>2</td>
+<td>19</td>
+<td>2013-01-02</td>
+</tr>
+<tr>
+<td>……</td>
+<td>……</td>
+<td>……</td>
+</tr>
+</tbody>
+</table>
+<p>另一个表是当天小部分用户的pv表（<code>user_pv_to_update</code>，1000条数据）：</p>
+<table>
+<thead>
+<tr>
+<th>user_id</th>
+<th>pv</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>18</td>
+</tr>
+<tr>
+<td>2</td>
+<td>20</td>
+</tr>
+<tr>
+<td>……</td>
+<td>……</td>
+</tr>
+</tbody>
+</table>
+<p>两个表的索引情况是，<code>user_pv_byday</code>表的<code>user_id</code>和<code>stat_date</code>字段有索引，<code>user_pv_to_update</code>表的<code>user_id</code>字段有索引。<br>现在要把<code>user_pv_to_update</code>的pv数据更新到<code>user_pv_byday</code>当天的数据中：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">update</span> user_pv_byday a </span><br><span class="line"><span class="keyword">join</span> user_pv_to_update b <span class="keyword">on</span> a.user_id = b.user_id </span><br><span class="line"><span class="keyword">set</span> a.pv = b.pv</span><br><span class="line"><span class="keyword">where</span> a.stat_date = <span class="keyword">curdate</span>() – <span class="number">1</span>;</span></span><br></pre></td></tr></table></figure>
+<p>经过一段时间的线上运行之后，发现这个步骤越来越慢了。查了一下执行计划，发现mysql选择了<code>user_pv_byday</code>表的<code>user_id</code>做索引。于是，决定强制用上<code>stat_date</code>的索引。这样一来join的时候需要用到的就是<code>user_pv_to_update</code>上的<code>user_id</code>字段。这个时候就需要指定顺序，强制<code>user_pv_byday</code>表作为外层驱动表（<code>user_pv_to_update</code>则是nest loop的内层嵌套）：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">update</span> user_pv_byday a </span><br><span class="line"><span class="keyword">straight_join</span> user_pv_to_update b <span class="keyword">on</span> a.user_id = b.user_id </span><br><span class="line"><span class="keyword">set</span> a.pv = b.pv</span><br><span class="line"><span class="keyword">where</span> a.stat_date = <span class="keyword">curdate</span>() – <span class="number">1</span>;</span></span><br></pre></td></tr></table></figure>
+<p>然后来看一下两种写法的执行计划。</p>
+<p><strong>原有写法：</strong></p>
+<table>
+<thead>
+<tr>
+<th>……</th>
+<th>table</th>
+<th>type</th>
+<th>……</th>
+<th>key</th>
+<th>……</th>
+<th>ref</th>
+<th>rows</th>
+<th>extra</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>……</td>
+<td>b</td>
+<td>ALL</td>
+<td>……</td>
+<td></td>
+<td>……</td>
+<td></td>
+<td>1000</td>
+<td></td>
+</tr>
+<tr>
+<td>……</td>
+<td>a</td>
+<td>ref</td>
+<td>……</td>
+<td>user_id</td>
+<td>……</td>
+<td>b.user_id</td>
+<td>368</td>
+<td>Using where</td>
+</tr>
+</tbody>
+</table>
+<p><strong>强制join顺序的写法：</strong></p>
+<table>
+<thead>
+<tr>
+<th>……</th>
+<th>table</th>
+<th>type</th>
+<th>……</th>
+<th>key</th>
+<th>……</th>
+<th>ref</th>
+<th>rows</th>
+<th>extra</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>……</td>
+<td>a</td>
+<td>ref</td>
+<td>……</td>
+<td>stat_date</td>
+<td>……</td>
+<td>const</td>
+<td>485228</td>
+<td>Using where</td>
+</tr>
+<tr>
+<td>……</td>
+<td>b</td>
+<td>ref</td>
+<td>……</td>
+<td>user_id</td>
+<td>……</td>
+<td>a.user_id</td>
+<td>1</td>
+<td>Using where</td>
+</tr>
+</tbody>
+</table>
+<p>根据执行计划中的数据，可以说mysql的选择没有错。原有写法需要读取的数据大致是1000 * 368约合37万，修改写法则是48万，修改写法读取的代价更大。但实际运行情况则是修改写法快过原来写法数倍。</p>
+<p>不过，这个情况却不能随时重现。真要把这两个表写入空表并且重建索引再来查询，会发现<code>straight_join</code>的结果确实会更慢，也就是说在初始状态下，mysql的判断是对的。所以这样的问题只在日常运营中才会发生，无法重现，却是真实存在的，而且碰到类似这一类的应用场景，则必然发生。</p>
+<p>究其原因，在这种情况下，由于数据不是一次性建成，而是按天陆续写入，所以<code>user_pv_byday</code>的<code>user_id</code>索引会进行反复的修改，造成索引碎片，极端严重的情况下还会导致索引完全失效。而<code>stat_date</code>上的索引由于是每天递增，所以完全没有碎片问题，而且读取数据是还是顺序读取，效率自然要高不少。另外，根据实际情况的观察，随着数据的积累，上面执行计划中368这个值还会变得更小，也就是统计信息会越来越不准确。</p>
+<p>总之，mysql的执行计划在大部分情况下是没问题的，但是随着数据的不断积累修改，会逐渐出现mysql所不了解的细节，影响优化器的正常判断。这个时候如果能对表做一下重建也能让事情回到正轨，但是很多时候没有这个权限或者条件去做（比如你不是DBA，没有这种操作权限；或者表太大，没有完整的时间段可以操作）。那么强制索引使用就成了开发人员一个低成本的解决方案。</p>
+<h1 id="过多的join">过多的join</h1><p>在mysql中，需要join的表如果太多，会对性能造成很显著的下降。同样，举例说明。</p>
+<p>首先生成一个表（表名<code>test</code>），这个表只有60条记录，6个字段，其中第一个字段为主键：</p>
+<table>
+<thead>
+<tr>
+<th>pk</th>
+<th>c1</th>
+<th>c2</th>
+<th>c3</th>
+<th>c4</th>
+<th>c5</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>11</td>
+<td>21</td>
+<td>31</td>
+<td>41</td>
+<td>51</td>
+</tr>
+<tr>
+<td>2</td>
+<td>12</td>
+<td>22</td>
+<td>32</td>
+<td>42</td>
+<td>52</td>
+</tr>
+<tr>
+<td>3</td>
+<td>13</td>
+<td>23</td>
+<td>33</td>
+<td>43</td>
+<td>53</td>
+</tr>
+<tr>
+<td>4</td>
+<td>14</td>
+<td>24</td>
+<td>34</td>
+<td>44</td>
+<td>54</td>
+</tr>
+<tr>
+<td>……</td>
+<td>……</td>
+<td>……</td>
+<td>……</td>
+<td>……</td>
+<td>……</td>
+</tr>
+</tbody>
+</table>
+<p>然后做一个查询：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">select</span> <span class="keyword">count</span>(*) </span><br><span class="line"><span class="keyword">from</span> <span class="keyword">test</span> a1</span><br><span class="line"><span class="keyword">join</span> <span class="keyword">test</span> a2 <span class="keyword">using</span> (pk)</span></span><br></pre></td></tr></table></figure>
+<p>也就是说让test表跟自己关联。计算的结果显然是60，而且几乎不费时间。</p>
+<p>但是如果是这样的查询（十个<code>test</code>表关联），会花费多少时间？</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">select</span> <span class="keyword">count</span>(*)</span><br><span class="line"><span class="keyword">from</span> <span class="keyword">test</span> a1</span><br><span class="line"><span class="keyword">join</span> <span class="keyword">test</span> a2 <span class="keyword">using</span> (pk)</span><br><span class="line"><span class="keyword">join</span> <span class="keyword">test</span> a3 <span class="keyword">using</span> (pk)</span><br><span class="line"><span class="keyword">join</span> <span class="keyword">test</span> a4 <span class="keyword">using</span> (pk)</span><br><span class="line"><span class="keyword">join</span> <span class="keyword">test</span> a5 <span class="keyword">using</span> (pk)</span><br><span class="line"><span class="keyword">join</span> <span class="keyword">test</span> a6 <span class="keyword">using</span> (pk)</span><br><span class="line"><span class="keyword">join</span> <span class="keyword">test</span> a7 <span class="keyword">using</span> (pk)</span><br><span class="line"><span class="keyword">join</span> <span class="keyword">test</span> a8 <span class="keyword">using</span> (pk)</span><br><span class="line"><span class="keyword">join</span> <span class="keyword">test</span> a9 <span class="keyword">using</span> (pk)</span><br><span class="line"><span class="keyword">join</span> <span class="keyword">test</span> a10 <span class="keyword">using</span> (pk)</span></span><br></pre></td></tr></table></figure>
+<p>答案是：肯定超过5分钟。因为做了实际测试，5分钟还没有出结果。</p>
+<p>那么mysql到底在干什么呢？用show processlist去看一下运行时情况：</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>……</th>
+<th>COMMAND</th>
+<th>TIME</th>
+<th>STATE</th>
+<th>INFO</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>121</td>
+<td>……</td>
+<td>QUERY</td>
+<td>302</td>
+<td>statistics</td>
+<td>select count(*) from test a1 ……</td>
+</tr>
+</tbody>
+</table>
+<p>原来是处在<code>statistics</code>的状态。这个状态，根据mysql的解释是在根据统计信息去生成执行计划。当然这个解释肯定是没有追根溯源。实际上mysql在生成执行计划的时候，其中有一个步骤，是确定表的join顺序。默认情况下，mysql会把所有join顺序全部排列出来，依次计算各个join顺序的执行代价并且取最优的那个。这样一来，n个表join会有n!种情况。十个表join就是10!，大概300万，所以难怪mysql要分析半天了。</p>
+<p>而在实际开发过程中，曾经出现过30多个表关联的情况（有10^32种join顺序）。一旦出现，花费在statistics状态的时间往往是在1个小时以上，这还只是在表数据量都非常小，需要做顺序分析的点比较少的情况下。至于出现这种情况的原因，无外乎我们需要计算的汇总报表的字段太多，需要从各种各样的地方计算出来数据，然后再把数据拼接起来，报表在维护过程中不断添加字段，又由于种种原因没有去掉已经废弃的字段，这样字段必定会越来愈多，实现这些字段计算就需要用更多的临时计算结果表去关联到一起，结果需要关联的表也越来越多，成了mysql无法承受之重。</p>
+<p>这个问题的解决方法有两个。从开发角度来说，可以控制join的表个数。如果需要join的表太多，可以根据业务上的分类，先做一轮join，把表的数量控制在一定范围内，然后拿到第一轮的join结果，再做第二轮全局join，这样就不会有问题了。从运维角度来说，可以设置<code>optimizer_search_depth</code>这个参数。它能够控制join顺序遍历的深度，进行贪婪搜索得到局部最优的顺序。一般有好多个表join的情况，都是上面说的相同维度的数据需要拼接成一张大表，对于join顺序基本上没什么要求。所以适当的把这个值调低，对于性能应该说没有影响。</p>
+<h1 id="列存储引擎Infobright">列存储引擎Infobright</h1><p>Infobright是基于mysql的存储引擎，具有列存储/列压缩和知识网格等特性，比较适合数据仓库的计算。使用起来也不需要考虑索引之类的问题，非常方便。不过经过一段时间的运用，也发现了个别需要注意的问题。</p>
+<p>一个问题和myisam类似，不要取不需要的数据。这里说的不需要的数据，包括不需要的列（Infobright的使用常识。当然行存储也要注意，只不过影响相对比较小，所以没有专门提到），和不需要的行（行数是可以扩展的，行存储一行基本上都能存在一个存储单元中，但是列存储一列明显不可能存在一个存储单元中）。</p>
+<p>第二个问题，就是Infobright在长字符检索的时候并不给力。一般来说，网站的访问日志中会有URL字段用来标识访问的具体地址。这样就有查找特定URL的需求。比如我要在一个日志表中查找某种类型的url的访问次数：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">select</span> <span class="keyword">count</span>(*) <span class="keyword">from</span> <span class="keyword">log</span> <span class="keyword">where</span> <span class="keyword">url</span> <span class="keyword">like</span> <span class="string">'%mysql%'</span>;</span></span><br></pre></td></tr></table></figure>
+<p>类似这样在一个长字符串里面检索子串的需求，Infobright的执行时间测试下来是myisam的1.5-3倍。<br>至于速度慢的原因，这里给出一个简要的解释：Infobright作为列式数据库使用了列存储的常用特性，就是压缩（列式数据库的压缩率一般要能做到10%以内，Infobright也不例外）。另外为了加快查找速度，它还使用了一种叫知识网格检索方式，一般情况下能够极大的减少需要读取的数据量。关于知识网格的原理已经超出了本篇文章的讨论篇幅，可以看<a href="http://www.cnblogs.com/inmanhust/archive/2010/05/08/1730343.html" target="_blank" rel="external">这里</a>了解。但是在查询url的时候，知识网格的优点无法体现出来，但是使用知识网格本身带来的检索代价和解压长字符串的代价却仍然存在，而且比查询一般的数字类字段要来的大的多。</p>
+<p>解决办法有几种，比如<a href="http://www.infobright.org/images/uploads/blogs/how-to/How_To_Efficiently_Search_Strings_in_Infobright.pdf" target="_blank" rel="external">官方的方案</a>是把长字符串MD5成一个数字，查询的时候加上数字作为补充查询条件。而<a href="http://weibo.com/1699016425/zzPJbzQFz" target="_blank" rel="external">这条微博</a>给出的方法是进行分词然后再整数化。这些方案相对来说比较复杂，而我尝试过一种简单的解决方案（不过也有相当的局限性），就是根据这个长字段排序后再导入。这样一来按照该字段查询时，通过知识网格就能够屏蔽掉比较多的“数据包”（Infobright的数据压缩单元），而未排序的情况下符合条件的数据散布在各个“数据包”中，其解压工作量就大得多了。使用这个方法进行查询，测试下来其执行时间就只有mysql的0.5倍左右了。 </p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/mysql/" rel="tag">#mysql</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2013/09/01/数据仓库中的sql性能优化（hive篇）/" rel="prev">数据仓库中的SQL性能优化（Hive篇）</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+              <div class="ds-thread" data-thread-key="2013/04/30/数据仓库中的sql性能优化（mysql篇）/"
+                   data-title="数据仓库中的sql性能优化（MySQL篇）" data-url="http://sunyi514.github.io/2013/04/30/数据仓库中的sql性能优化（mysql篇）/">
+              </div>
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xltg5.com1.z0.glb.clouddn.com/author.jpg" alt="奔跑的兔子" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">奔跑的兔子</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"></p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">7</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">1</span>
+              <span class="site-state-item-name">分类</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">9</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/u/1731546452" target="_blank">weibo</a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#利用已有数据，避免重复计算"><span class="nav-number">1.</span> <span class="nav-text">利用已有数据，避免重复计算</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#case_when关键字的使用方法"><span class="nav-number">2.</span> <span class="nav-text">case when关键字的使用方法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#分页取数方式"><span class="nav-number">3.</span> <span class="nav-text">分页取数方式</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#索引使用"><span class="nav-number">4.</span> <span class="nav-text">索引使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#索引调整"><span class="nav-number">4.1.</span> <span class="nav-text">索引调整</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#覆盖索引"><span class="nav-number">4.2.</span> <span class="nav-text">覆盖索引</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#强制索引"><span class="nav-number">4.3.</span> <span class="nav-text">强制索引</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#过多的join"><span class="nav-number">5.</span> <span class="nav-text">过多的join</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#列存储引擎Infobright"><span class="nav-number">6.</span> <span class="nav-text">列存储引擎Infobright</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp;  2013 - 
+  <span itemprop="copyrightYear">2015</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">奔跑的兔子</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"sunyi514"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+    
+     
+     
+  	<script src="/js/ua-parser.min.js"></script>
+  	<script src="/js/hook-duoshuo.js"></script>
+  
+
+    
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

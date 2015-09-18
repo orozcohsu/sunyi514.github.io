@@ -1,0 +1,726 @@
+<!doctype html>
+<html class="theme-next use-motion ">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+
+
+  <meta name="keywords" content="database,hadoop,kafka,reading notes," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="原文地址：http://www.benstopford.com/2015/04/28/elements-of-scale-composing-and-scaling-data-platforms/
+前两天看了下这篇文章（后面简称原文），感觉不错，原本打算完整的翻译一下，结果发现已经有人这么做了（传送门，不过有一些地方翻译存在问题）。所以还是写一篇总结性质的笔记吧。
+正文过去十年，技术界为了解决与数">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Elements of Scale阅读笔记">
+<meta property="og:url" content="http://sunyi514.github.io/2015/08/21/elements-of-scale阅读笔记/index.html">
+<meta property="og:site_name" content="奔跑的兔子">
+<meta property="og:description" content="原文地址：http://www.benstopford.com/2015/04/28/elements-of-scale-composing-and-scaling-data-platforms/
+前两天看了下这篇文章（后面简称原文），感觉不错，原本打算完整的翻译一下，结果发现已经有人这么做了（传送门，不过有一些地方翻译存在问题）。所以还是写一篇总结性质的笔记吧。
+正文过去十年，技术界为了解决与数">
+<meta property="og:image" content="http://benstopford.com/uploads/img/Slide04.png">
+<meta property="og:image" content="http://benstopford.com/uploads/img/Slide11.png">
+<meta property="og:image" content="http://benstopford.com/uploads/merge.png">
+<meta property="og:image" content="http://benstopford.com/uploads/four.jpg">
+<meta property="og:image" content="http://7xltg5.com1.z0.glb.clouddn.com/partition.jpg">
+<meta property="og:image" content="http://7xltg5.com1.z0.glb.clouddn.com/replication.jpg">
+<meta property="og:image" content="http://7xltg5.com1.z0.glb.clouddn.com/cqrs.jpg">
+<meta property="og:image" content="http://benstopford.com/uploads/img/Slide39.png">
+<meta property="og:image" content="http://7xltg5.com1.z0.glb.clouddn.com/batch_stream.jpg">
+<meta property="og:image" content="http://benstopford.com/uploads/sdp.jpg">
+<meta property="og:image" content="http://benstopford.com/uploads/conc1.jpg">
+<meta property="og:image" content="http://benstopford.com/uploads/conc2.jpg">
+<meta property="og:updated_time" content="2015-09-16T23:59:18.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Elements of Scale阅读笔记">
+<meta name="twitter:description" content="原文地址：http://www.benstopford.com/2015/04/28/elements-of-scale-composing-and-scaling-data-platforms/
+前两天看了下这篇文章（后面简称原文），感觉不错，原本打算完整的翻译一下，结果发现已经有人这么做了（传送门，不过有一些地方翻译存在问题）。所以还是写一篇总结性质的笔记吧。
+正文过去十年，技术界为了解决与数">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: '',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Elements of Scale阅读笔记 | 奔跑的兔子 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-60954885-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">奔跑的兔子</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            <i class="menu-item-icon icon-next-categories"></i> <br />
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            <i class="menu-item-icon icon-next-about"></i> <br />
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Elements of Scale阅读笔记
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2015-08-21T20:22:12+08:00" content="2015-08-21">
+            2015-08-21
+          </time>
+        </span>
+
+        
+          <span class="post-category" >
+            &nbsp; | &nbsp; 分类于
+            
+              <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                <a href="/categories/data-system/" itemprop="url" rel="index">
+                  <span itemprop="name">data system</span>
+                </a>
+              </span>
+
+              
+              
+
+            
+          </span>
+        
+
+        
+          
+            <span class="post-comments-count">
+              &nbsp; | &nbsp;
+              <a href="/2015/08/21/elements-of-scale阅读笔记/#comments" itemprop="discussionUrl">
+                <span class="post-comments-count ds-thread-count" data-thread-key="2015/08/21/elements-of-scale阅读笔记/" itemprop="commentsCount"></span>
+              </a>
+            </span>
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><p>原文地址：<a href="http://www.benstopford.com/2015/04/28/elements-of-scale-composing-and-scaling-data-platforms/" target="_blank" rel="external">http://www.benstopford.com/2015/04/28/elements-of-scale-composing-and-scaling-data-platforms/</a></p>
+<p>前两天看了下这篇文章（后面简称原文），感觉不错，原本打算完整的翻译一下，结果发现已经有人这么做了（<a href="http://blog.jobbole.com/88453/" target="_blank" rel="external">传送门</a>，不过有一些地方翻译存在问题）。所以还是写一篇总结性质的笔记吧。</p>
+<h1 id="正文">正文</h1><p>过去十年，技术界为了解决与数据平台有关的问题，诞生了很多的方案。如今的数据平台架构已经非常复杂。本文的内容就是剖析一下其中一些相对成熟有效，得到较广泛使用的方案背后的原理。</p>
+<h1 id="局部性">局部性</h1><p>所谓处理数据，其实就是如何去利用局部性。利用局部性可以让CPU做出预测，更好的缓存数据，因为可以做预读取。对于硬盘来说，顺序读取由于可以利用局部性，让数据缓存到disk buffer，page cache，L1~L3 cache等各个层级的缓存，而随机读则无法利用缓存（其实也会预读取，但是预读取的数据后面就用不到了，等同于失效），所以顺序读优于随机读。而且不仅如此，其实对于内存来说顺序读的速度也比随机读快一两个数量级，如果考虑GC的代价，差距更大。另外，磁盘顺序读比内存随机读速度还要快点（具体数据参考<a href="http://deliveryimages.acm.org/10.1145/1570000/1563874/jacobs3.jpg" target="_blank" rel="external">此图</a>）。虽然这几年SSD逐渐普及开来，表现出不太一样的特性（没有磁盘的寻道时间，所以随机IO速度快），但是在缓存这件事情上还是一样的。</p>
+<p><img src="http://benstopford.com/uploads/img/Slide04.png" alt="locality"></p>
+<h1 id="存储引擎">存储引擎</h1><p>来看一下如何构造基本的单机存储引擎。记住我们之前讨论的结果：顺序IO优于随机IO。我们从最基本的文件实现开始，数据保存在一个文件里面，新增记录append到数据尾部。这种存储方式在数据库中叫heap file。数据的更新采用日志记录方式（所以也是顺序写入），然后在读取的时候做merge。</p>
+<p><img src="http://benstopford.com/uploads/img/Slide11.png" alt="update"></p>
+<p>然后是增加索引，如BTree，这样查询数据不用scan整个数据文件。增加索引之后发现，数据的写入需要同时更新索引，而由于索引是有序的，所以这种更新是随机写。这样一来速度开始变慢了，在磁盘上维护索引的写入性能比没有用索引可能要差1000倍。那么我们就要开始考虑解决方案。</p>
+<p>最容易想到的方案A，就是把索引放在内存维护。像MongoDB，CouchBase，Riak等系统都用的这种方案，具体来说会用到mmap（内存映射文件）。这种方案简单快捷，但是有一个问题在于：内存大小相对有限，如果数据量太大，在内存里就装不下索引了。</p>
+<p>所以接下来的方案B，为了维护更大的索引，可以把索引拆成多个。具体来说，每次先在内存维护写入的数据，等到积攒到一定大小了，就整理成一个索引文件写入磁盘。这样就会有一堆索引文件，当然后台也需要定期合并，避免索引过多和内容重复。在实际系统中，HBase和Cassandra都用了这个方案，具体来说用到的技术是LSM Tree。 这个方案的问题在于，读取时需要读取多个索引，而且索引里面可能有重复更新的过期内容，这都会增加读取的数据量，使得读性能下降。这相当于把问题从随机写转移到随机读。为了解决这个问题，可以增加一些元索引，或者bloom filter之类的。</p>
+<p>还有一种方案C，专门面向分析类应用的，可以把上面说的索引都去掉，直接按列存储。这样一来读取数据的时候，可以不用读取不需要的列。另外列存储会有更加高效的编码压缩（比如最典型的有LRE，delta等），而且查询时的filter可以直接作用于编码压缩之后的数据。再者列存储一般都按一定大小的block计算一些统计值，filter和aggregation也可以直接利用这些统计值，直接跳过对block的读取。典型的列存储格式就是从hadoop生态圈发展起来的parquet和orc，一些MPP数据库如vertica也有自己的列存储格式。列存储的写入，由于要写入多个文件，所以理论上会比行存储效率低，不过也可以用类似LSM的策略（但不是类似的结构）解决写入的问题。最后补充一个实践经验：分析类应用如果有数据update需求，很有可能是大批量的数据更新，这种情况下虽然数据库即使先在内存保存了更新数据，使得更新操作速度尚可，但是读取数据的时候就要做大量合并（原来的更新会被当成为delete + insert，delete的数据会在读取时合并），这样还是会降低读取速度，所以建议尽量少做大批量update/delete，或者做完之后调用数据刷新的接口（如果系统提供的话）重新整理数据。</p>
+<p>如果要说列存储有没有跟行存储类似性质的索引，原文中认为列存储中每一列的每行字段都会有rowid，算是类似的概念，这也是列存储和行存储用多个索引读取数据的区别：列存储只需要多个列相同rowid的字段进行join，属于顺序读。行存储使用两个索引的情况，比如数据存储使用index file（主索引即数据）而不是前面讨论的heap file（比如mysql中的innodb v.s. myisam），那么使用二级索引其实是要根据二级索引去查主索引，主索引再查到数据，还是需要随机读。相比之下自然是列存储的方式更加高效。</p>
+<p><img src="http://benstopford.com/uploads/merge.png" alt="merge_join"></p>
+<p>除了上面的解决方案以外，还要提一下消息队列。现在在大数据系统中流行的kafka跟传统的消息中间件不太一样，传统中间件的规范如JMS，AMQP都要求消息队列有索引。如果加上索引，那么从其实已经跟数据库很像了。事实上数据库大师Jim Gray早在95年就发文指出<a href="http://research.microsoft.com/pubs/69641/tr-95-56.pdf" target="_blank" rel="external">消息队列即数据库</a>。</p>
+<p>以上展示了存储引擎实现的基本原理，当然真实系统中的情况还要更加的复杂，有很多细节的需要深入。下图罗列了刚才讨论的所有方案：</p>
+<p><img src="http://benstopford.com/uploads/four.jpg" alt="storage"></p>
+<h1 id="并行">并行</h1><p>数据平台面临的并行问题就是如何把数据分布到多台机器上。方法就两种，一种是分片（partition，也可以叫sharding），另一种是复制（replication）。</p>
+<p>分片常见的方式如hash分片（比如按照key），或者范围分片（比如按照日期）。分片可以解决两类问题：</p>
+<blockquote>
+<ul>
+<li>一类是按照分片的key获取数据，这样可以只访问部分机器，每个机器只需要处理一部分数据的请求，于是就增加了并发能力。</li>
+<li>另一类是批处理计算，比如报表计算，机器学习模型训练等等，数据分布在不同机器上，可以启动所有机器的计算资源，相当于对计算任务分而治之。当然这种场景下单个计算任务（理论上）就能耗费所有系统资源，所以任务并发能力较低。</li>
+</ul>
+</blockquote>
+<p><img src="http://7xltg5.com1.z0.glb.clouddn.com/partition.jpg" alt="partition"></p>
+<p>然而，对于另外一些场景，比如按照二级索引取数据，分片就不那么好使了，因为二级索引需要扫描所有的机器，于是这就会限制并发能力。所以有些系统如HBase就不提供这种功能（虽然不提供统一的内置功能，但实际上还是有一些<a href="http://hbase.apache.org/book.html#secondary.indexes" target="_blank" rel="external">变通方法</a>），但是另外一些系统如MongoDB还是会提供，毕竟这是一个很强烈的需求。要解决这个问题，就要复制出场了。</p>
+<p><img src="http://7xltg5.com1.z0.glb.clouddn.com/replication.jpg" alt="replication"></p>
+<p>复制按照类型可以分为不可见复制（只用来做备份恢复），只读复制（增加读并发），读写复制（增加读写并发，也增加了网络分区时的可用性）。只读复制适用于MS架构，读写复制适用于对等的P2P架构。选用哪一种复制模式会影响到一致性的程度。当然这里说的一致性是CAP中的一致性：所有节点同一时间看到相同数据，简单来说就是强一致性。</p>
+<p>考虑到CAP理论，如果要维持强一致性，那么整个系统就变成龟速（牺牲可用性）。在具有事务（ACID）的传统数据库中，也是有保证一致性的方式的，叫做serializability。但实际上由于代价太大，在事务隔离级别中，很多数据库根本不支持这个级别，即使支持，也<a href="http://www.benstopford.com/default-and-maximum-isolation-levels-for-databases-january-2013/" target="_blank" rel="external">很少</a>是将其设为默认值的。（注意：原文中作者用了linearizability而非serializability，实际上两者是<a href="http://www.bailis.org/blog/linearizability-versus-serializability/" target="_blank" rel="external">有所不同的</a>。linearizability完全匹配CAP中的C含义，故而作者会用这个词。serializability是数据库界提出的，围绕事务概念，要求事务总顺序串行。linearizability则是搞分布式系统和并发编程的人提出的，没有事务概念，要求对单个对象的单个操作按照严格顺序。<a href="https://en.wikipedia.org/wiki/Linearizability#Linearizability_versus_serializability" target="_blank" rel="external">这里</a>有一个例子，可以参考对比。）</p>
+<p>虽然强一致性很难做到，但是这并不代表就要放弃了。以下是一些解决方案：</p>
+<blockquote>
+<ul>
+<li>把数据变成不可变（immutable）的。最简单的就比如流量日志数据。复杂一点的情况，就是看起来需要更新状态，实际上可以转化成不可变数据。比如把一个交易标记为可能是欺诈交易，看起来好像需要更新字段，但实际上可以通过用新的单独数据来标记，关联到原来的交易。</li>
+<li>隔离写操作到单台机器，如<a href="http://www.datomic.com/" target="_blank" rel="external">Datomic</a>。</li>
+<li>学术界提出的理论方案：基于<a href="http://www.bloom-lang.net/calm/" target="_blank" rel="external">CALM</a>原理设计的Bloom语言。用这个语言编程的程序可以用代码分析技术检测出是否会造成不一致，对不一致的代码块可以由程序员人为调整加入coordination，从而获得一致性。当然，这个方案目前看来还是比较“高冷”，不能落地。</li>
+</ul>
+</blockquote>
+<p>不过很明显这些方法都只能适用于部分需求，实际需求中很多情况下还是不得不放弃强一致性，采取最终一致性。</p>
+<h1 id="架构">架构</h1><p>通过前面的讨论，我们已经把系统从单机扩展到分布式。我们提出了很多问题的解决方案，讨论了各种tradeoff，现在是时候把这些方案都组装起来成为一个完整的数据平台架构了。</p>
+<p>最简单的架构就是一个单独的数据库系统，读写都从里面出。这种模式只能应对小规模的负载。系统吞吐要求上去之后，就要考虑假如异步（如message passing，actor）和负载均衡。另外这种模式把系统（即数据库）当成黑盒使用。数据库是有很多不错的特性，但是事务的存在让数据库没有太好的办法处理扩展性。在事务里面操作很安全，但是强制让事务存在以至于扩展性受限就不好了，尤其是很多需求可以不用事务来实现。</p>
+<p>我们从最简单的方案开始考虑：CQRS。CQRS也就是读写分离，写操作和读操作分别对应不同的存储单元，这样处理写操作的单元可以专门使用可以优化写操作的存储结构，读操作这边也可以优化。比较简单的情形如MongDB使用复制集完成读写分离，复杂一点的如时间序列数据库druid，把节点分成realtime和history，realtime实时接入数据流，针对写操作优化。history则属于专门用来查询的，也可以批量加载从realtime过来的和单独加载的数据，针对读优化。查询时为了获取最新数据，realtime和history都需要查询（当然这点对于用户是屏蔽的，druid中用户查询是有专门的broker节点作为中间路由）。realtime虽然没有特别的读优化，但是数据量不大（定期转移到history，实践中一般按小时级别），所以查询不会有太大问题。</p>
+<p><img src="http://7xltg5.com1.z0.glb.clouddn.com/cqrs.jpg" alt="cqrs"></p>
+<p>接下来作者又提出了Operational/Analytic Bridge架构（后面简称OAB），这是作者在银行工作期间搭建平台时逐渐抽象出来的（题外话：作者现在去了Confluent，也就是Kafka作者Jay Kreps的公司）。其实之前Jay Kreps在The Log一文中已经提出过类似架构，只不过本文中对细节描述的更加清楚。如下图所示，左边这一部分是Operational的，面向OLTP环境，也就是支持读写，也可以支持事务，右边这部分属于Analytic，面向OLAP环境，针对只读数据做优化。中间的数据流是由Operational的写操作同步产生，Analytic则以消息流作为桥接，异步、批量的进行读操作。虽然作者在原文里没有提到OAB架构跟CQRS之间有没有演化关系，但是我想如果有的话，那么可以这样理解：把CRQS中写优化节点和读优化节点的数据同步机制强化，做成比较健壮的消息层，原来的读写两类节点能接入更多不同系统，这就算进阶到OAB架构了。</p>
+<p><img src="http://benstopford.com/uploads/img/Slide39.png" alt="OAB"></p>
+<p>基于OAB架构的原型，可以开始强化只读层的系统。为了支持更大的数据处理规模，就要引入hadoop，由hadoop做计算，数据库做查询。但是单单只有hadoop做计算，那么只能算一个批处理管道（batch pipeline），数据的时效性有滞后。如果想更快的查到结果，就要引入流式计算。<br>结合批处理和流式计算的架构，叫做Lambda架构，数据分别由批处理层(Hadoop)和实时层(Storm)分别计算，批处理层有准确的历史数据，可以反复计算。实时层进行增量数据的计算，但是由于只能容纳一定的计算窗口，所以数据不完全精确（比如uv数据，增量数据就不能代替全量数据），但是通过批处理层最终还是能得到精确数据。应用端查询全量数据时同时查询批处理层的结果数据和实时层的结果数据。</p>
+<p>如果把Lambda架构的离线计算层去掉，就变成了Kappa架构，作者在原文中叫流数据平台（stream data platform）。出现Kappa架构的原因是因为Jay Kreps认为Lambda架构有一个最大的问题，就实时和离线其实是两套相同的逻辑，首先计算部分的逻辑是相同的，但是用了不同的计算平台，其次两边的结果表也是相同的，但是一般也放在不同的系统中。这两个环节都拥有相同的两套逻辑，会对数据处理和查询逻辑的维护带来很大负担。一方面是代码维护的负担，这或许可以通过一些编程框架解决，另一方面是两套系统和数据调试的负担，这个就不好解决了。所以Kappa架构中直接就去掉了离线计算层（不过hadoop还是可以保留的，只不过不再起到Lambda架构中的作用），数据直接存在消息队列kafka中，所有计算都通过流计算完成。如果需要重新计算历史数据，只需要另外开一个流计算任务从比较早的kafka数据开始追，追上了之后原来的老结果表就可以被新结果表取代。这种架构在速度上不见得会比Lambda架构更快，但是能解决前面提出的问题。其最大的缺点在于kafka中必须保持很大的数据量，只有确定数据不会再需要重新计算，才会过期。而且流式计算的窗口可能会很大。</p>
+<p><img src="http://7xltg5.com1.z0.glb.clouddn.com/batch_stream.jpg" alt="batch_stream"></p>
+<p>最后，用Kappa架构结合OAB的整体架构再从全局回顾，困扰技术供应商多年的“应用集成”问题，或许会有潜在的解决可能性。大型技术供应商如Informatica，Tibco，Orcale都为应用集成提出一些方案，但是通常只能解决局部问题，或者表面上看起来解决了，其实没有彻底的解决。这些传统的解决方案，如基于数据的同步，数据集成(ETL/数据仓库)，甚至最新的所谓数据湖概念，都由于在复制层吞吐量不够大，以及很难处理schema变更而碰到阻碍。但是我们上面谈到的架构，有了kafka这一层高吞吐的消息队列作为单独的中间环节，把一致性问题隔离在数据源这层，并且kafka还可以作为历史数据记录，能够通过重放日志恢复状态，不需要像数据库那样做检查点（checkpoint）。所以这个架构至少能解决前一个问题，而后一个问题（schema变更）倒是还真的没有定论。</p>
+<p><img src="http://benstopford.com/uploads/sdp.jpg" alt="EAI"></p>
+<h1 id="总结">总结</h1><p>我们从单个组件开始讨论，其关键点在于利用顺序读写产生局部性。然后我们对单个组件做水平扩展，利用分片和复制（小图6）。这个时候出现了一致性问题，在构建平台的时候需要将其隔离（小图4）。</p>
+<p>接下来把视野扩大到整个数据平台，需要找到各个组件协同工作的平衡点，使得数据平台变成一个统一的整体（小图8）。为此，我们用增量重建（小图3），将系统从写优化转移到读优化（小图5），把一致性问题的约束通过异步只读的数据流来消解（小图1）。</p>
+<p>系统中还会有一些别的问题要小心，原文中没有专门讲，一个是数据库schema对数据写入的约束（小图2，意思是写入时的检查），另一个是由分布式系统，尤其是异步环境下带来的时钟问题（小图7，会影响到并发顺序）。不过认真对待，还是能搞定的。</p>
+<p>未来一定还会出现更多的解决方案，逐步融合到现有的数据平台中，解决更多已有或未知的问题。</p>
+<p><img src="http://benstopford.com/uploads/conc1.jpg" alt="summary1"><br><img src="http://benstopford.com/uploads/conc2.jpg" alt="summary2"></p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/database/" rel="tag">#database</a>
+          
+            <a href="/tags/hadoop/" rel="tag">#hadoop</a>
+          
+            <a href="/tags/kafka/" rel="tag">#kafka</a>
+          
+            <a href="/tags/reading-notes/" rel="tag">#reading notes</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/03/28/mac-osx上安装hadoop2（续）/" rel="next">Mac OSX上安装Hadoop2（续）</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+              <div class="ds-thread" data-thread-key="2015/08/21/elements-of-scale阅读笔记/"
+                   data-title="Elements of Scale阅读笔记" data-url="http://sunyi514.github.io/2015/08/21/elements-of-scale阅读笔记/">
+              </div>
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xltg5.com1.z0.glb.clouddn.com/author.jpg" alt="奔跑的兔子" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">奔跑的兔子</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"></p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">7</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">1</span>
+              <span class="site-state-item-name">分类</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">9</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/u/1731546452" target="_blank">weibo</a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#正文"><span class="nav-number">1.</span> <span class="nav-text">正文</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#局部性"><span class="nav-number">2.</span> <span class="nav-text">局部性</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#存储引擎"><span class="nav-number">3.</span> <span class="nav-text">存储引擎</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#并行"><span class="nav-number">4.</span> <span class="nav-text">并行</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#架构"><span class="nav-number">5.</span> <span class="nav-text">架构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">6.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp;  2013 - 
+  <span itemprop="copyrightYear">2015</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">奔跑的兔子</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"sunyi514"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+    
+     
+     
+  	<script src="/js/ua-parser.min.js"></script>
+  	<script src="/js/hook-duoshuo.js"></script>
+  
+
+    
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
