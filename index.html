@@ -968,6 +968,7 @@
 <h1 id="Job整体优化">Job整体优化</h1><p>有一些问题必须从job的整体角度去观察。这里讨论几个问题：Job执行模式（本地执行v.s.分布式执行）、JVM重用、索引、Join算法、数据倾斜。</p>
 <h2 id="Job执行模式">Job执行模式</h2><p>Hadoop的map reduce job可以有3种模式执行，即本地模式，伪分布式，还有真正的分布式。本地模式和伪分布式都是在最初学习hadoop的时候往往被说成是做单机开发的时候用到。但是实际上对于处理数据量非常小的job，直接启动分布式job会消耗大量资源，而真正执行计算的时间反而非常少。这个时候就应该使用本地模式执行mr job，这样执行的时候不会启动分布式job，执行速度就会快很多。比如一般来说启动分布式job，无论多小的数据量，执行时间一般不会少于20s，而使用本地mr模式，10秒左右就能出结果。</p>
 <p>设置执行模式的主要参数有三个，一个是<code>hive.exec.mode.local.auto</code>，把他设为true就能够自动开启local mr模式。但是这还不足以启动local mr，输入的文件数量和数据量大小必须要控制，这两个参数分别为<code>hive.exec.mode.local.auto.tasks.max</code>和<code>hive.exec.mode.local.auto.inputbytes.max</code>，默认值分别为4和128MB，即默认情况下，map处理的文件数不超过4个并且总大小小于128MB就启用local mr模式。</p>
+<p>另外，如果是简单的select语句，比如select某个列取个10条数据看看sample，那么在hive0.10之后有专门的fetch task优化，使用参数<code>hive.fetch.task.conversion</code>即可。</p>
 <h2 id="JVM重用">JVM重用</h2><p>正常情况下，MapReduce启动的JVM在完成一个task之后就退出了，但是如果任务花费时间很短，又要多次启动JVM的情况下（比如对很大数据量进行计数操作），JVM的启动时间就会变成一个比较大的overhead。在这种情况下，可以使用jvm重用的参数：</p>
 <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">set</span> mapred.job.<span class="keyword">reuse</span>.jvm.<span class="keyword">num</span>.tasks = <span class="number">5</span>;</span></span><br></pre></td></tr></table></figure>
 <p>他的作用是让一个jvm运行多次任务之后再退出。这样一来也能节约不少JVM启动时间。</p>
