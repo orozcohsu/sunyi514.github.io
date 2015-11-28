@@ -59,7 +59,7 @@
 <meta property="og:image" content="http://benstopford.com/uploads/sdp.jpg">
 <meta property="og:image" content="http://benstopford.com/uploads/conc1.jpg">
 <meta property="og:image" content="http://benstopford.com/uploads/conc2.jpg">
-<meta property="og:updated_time" content="2015-09-16T23:59:18.000Z">
+<meta property="og:updated_time" content="2015-11-28T03:03:30.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Elements of Scale阅读笔记">
 <meta name="twitter:description" content="原文地址：http://www.benstopford.com/2015/04/28/elements-of-scale-composing-and-scaling-data-platforms/
@@ -287,7 +287,7 @@
 </blockquote>
 <p>不过很明显这些方法都只能适用于部分需求，实际需求中很多情况下还是不得不放弃强一致性，采取最终一致性。</p>
 <h1 id="架构">架构</h1><p>通过前面的讨论，我们已经把系统从单机扩展到分布式。我们提出了很多问题的解决方案，讨论了各种tradeoff，现在是时候把这些方案都组装起来成为一个完整的数据平台架构了。</p>
-<p>最简单的架构就是一个单独的数据库系统，读写都从里面出。这种模式只能应对小规模的负载。系统吞吐要求上去之后，就要考虑假如异步（如message passing，actor）和负载均衡。另外这种模式把系统（即数据库）当成黑盒使用。数据库是有很多不错的特性，但是事务的存在让数据库没有太好的办法处理扩展性。在事务里面操作很安全，但是强制让事务存在以至于扩展性受限就不好了，尤其是很多需求可以不用事务来实现。</p>
+<p>最简单的架构就是一个单独的数据库系统，读写都从里面出。这种模式只能应对小规模的负载。系统吞吐要求上去之后，就要考虑异步（如message passing，actor）和负载均衡。另外这种模式把系统（即数据库）当成黑盒使用。数据库是有很多不错的特性，但是事务的存在让数据库没有太好的办法处理扩展性。在事务里面操作很安全，但是强制让事务存在以至于扩展性受限就不好了，尤其是很多需求可以不用事务来实现。</p>
 <p>我们从最简单的方案开始考虑：CQRS。CQRS也就是读写分离，写操作和读操作分别对应不同的存储单元，这样处理写操作的单元可以专门使用可以优化写操作的存储结构，读操作这边也可以优化。比较简单的情形如MongDB使用复制集完成读写分离，复杂一点的如时间序列数据库druid，把节点分成realtime和history，realtime实时接入数据流，针对写操作优化。history则属于专门用来查询的，也可以批量加载从realtime过来的和单独加载的数据，针对读优化。查询时为了获取最新数据，realtime和history都需要查询（当然这点对于用户是屏蔽的，druid中用户查询是有专门的broker节点作为中间路由）。realtime虽然没有特别的读优化，但是数据量不大（定期转移到history，实践中一般按小时级别），所以查询不会有太大问题。</p>
 <p><img src="http://7xltg5.com1.z0.glb.clouddn.com/cqrs.jpg" alt="cqrs"></p>
 <p>接下来作者又提出了Operational/Analytic Bridge架构（后面简称OAB），这是作者在银行工作期间搭建平台时逐渐抽象出来的（题外话：作者现在去了Confluent，也就是Kafka作者Jay Kreps的公司）。其实之前Jay Kreps在The Log一文中已经提出过类似架构，只不过本文中对细节描述的更加清楚。如下图所示，左边这一部分是Operational的，面向OLTP环境，也就是支持读写，也可以支持事务，右边这部分属于Analytic，面向OLAP环境，针对只读数据做优化。中间的数据流是由Operational的写操作同步产生，Analytic则以消息流作为桥接，异步、批量的进行读操作。虽然作者在原文里没有提到OAB架构跟CQRS之间有没有演化关系，但是我想如果有的话，那么可以这样理解：把CRQS中写优化节点和读优化节点的数据同步机制强化，做成比较健壮的消息层，原来的读写两类节点能接入更多不同系统，这就算进阶到OAB架构了。</p>
