@@ -1,0 +1,781 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+
+
+  <meta name="keywords" content="mcmc,sampling," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="采样采样问题指的是给定一个特定的概率分布$p(z)$，得到一批符合这个概率分布的样本点。
+采样的方法有很多，MCMC是其中的一类方法，意思是利用Mento Carlo和Markov Chain完成采样。
+当然，要完成对各种分布的采样，有一个默认的假设，就是我们已经能够对均匀分布进行采样了(后面就专指范围为0-1的均匀分布)，也就是编程中通常会用到的伪随机数发生器，在各大编程语言中通常以random">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MCMC方法小记">
+<meta property="og:url" content="http://sunyi514.github.io/2016/03/05/mcmc方法小记/index.html">
+<meta property="og:site_name" content="奔跑的兔子">
+<meta property="og:description" content="采样采样问题指的是给定一个特定的概率分布$p(z)$，得到一批符合这个概率分布的样本点。
+采样的方法有很多，MCMC是其中的一类方法，意思是利用Mento Carlo和Markov Chain完成采样。
+当然，要完成对各种分布的采样，有一个默认的假设，就是我们已经能够对均匀分布进行采样了(后面就专指范围为0-1的均匀分布)，也就是编程中通常会用到的伪随机数发生器，在各大编程语言中通常以random">
+<meta property="og:image" content="http://7xltg5.com1.z0.glb.clouddn.com/beta_mcmc.png">
+<meta property="og:image" content="http://7xltg5.com1.z0.glb.clouddn.com/gibbs.png">
+<meta property="og:image" content="http://7xltg5.com1.z0.glb.clouddn.com/sim_anneal.png">
+<meta property="og:updated_time" content="2016-03-26T02:45:09.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MCMC方法小记">
+<meta name="twitter:description" content="采样采样问题指的是给定一个特定的概率分布$p(z)$，得到一批符合这个概率分布的样本点。
+采样的方法有很多，MCMC是其中的一类方法，意思是利用Mento Carlo和Markov Chain完成采样。
+当然，要完成对各种分布的采样，有一个默认的假设，就是我们已经能够对均匀分布进行采样了(后面就专指范围为0-1的均匀分布)，也就是编程中通常会用到的伪随机数发生器，在各大编程语言中通常以random">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> MCMC方法小记 | 奔跑的兔子 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-60954885-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">奔跑的兔子</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            <i class="menu-item-icon icon-next-categories"></i> <br />
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            <i class="menu-item-icon icon-next-about"></i> <br />
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              MCMC方法小记
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-05T09:30:00+08:00" content="2016-03-05">
+            2016-03-05
+          </time>
+        </span>
+
+        
+          <span class="post-category" >
+            &nbsp; | &nbsp; 分类于
+            
+              <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                <a href="/categories/data-mining/" itemprop="url" rel="index">
+                  <span itemprop="name">data mining</span>
+                </a>
+              </span>
+
+              
+              
+
+            
+          </span>
+        
+
+        
+          
+            <span class="post-comments-count">
+              &nbsp; | &nbsp;
+              <a href="/2016/03/05/mcmc方法小记/#comments" itemprop="discussionUrl">
+                <span class="post-comments-count ds-thread-count" data-thread-key="2016/03/05/mcmc方法小记/" itemprop="commentsCount"></span>
+              </a>
+            </span>
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h1 id="采样">采样</h1><p>采样问题指的是给定一个特定的概率分布$p(z)$，得到一批符合这个概率分布的样本点。</p>
+<p>采样的方法有很多，MCMC是其中的一类方法，意思是利用Mento Carlo和Markov Chain完成采样。</p>
+<p>当然，要完成对各种分布的采样，有一个默认的假设，就是我们已经能够对均匀分布进行采样了(后面就专指范围为0-1的均匀分布)，也就是编程中通常会用到的伪随机数发生器，在各大编程语言中通常以random命名的模块/方法出现。</p>
+<h1 id="Mento_Carlo">Mento Carlo</h1><p>蒙特卡罗方法是一种通过在一定范围内均匀随机抽样来得到某个结果的计算方法。方法的大致思路框架是：</p>
+<blockquote>
+<ul>
+<li>针对计算问题选定抽样范围</li>
+<li>在范围内进行随机抽样</li>
+<li>根据问题定义，计算一些必要的样本统计值（或者说是对样本进行归类）</li>
+<li>整合这些统计值，得到最终结果</li>
+</ul>
+</blockquote>
+<h2 id="示例：圆周率计算">示例：圆周率计算</h2><p>在正方形中作一个内切圆，随机抽样一些点，记在内切圆中的点的数量为c，所有点的数量为n。那么c和n的比例就是内切圆和正方形的比例，即：<br>$$\frac{\pi r^2}{(2r)^2} = \frac{c}{n} =&gt; \pi = \frac{4c}{n}$$</p>
+<p>我们直接用一段spark官方示例中的spark pi代码展示：</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">val</span> <span class="title">n</span> =</span> <span class="number">100000</span> * slices <span class="comment">// slice是控制抽样量的参数</span></span><br><span class="line"><span class="function"><span class="keyword">val</span> <span class="title">count</span> =</span> sc.parallelize(<span class="number">1</span> to n, slices).map &#123; i =&gt;</span><br><span class="line">  <span class="function"><span class="keyword">val</span> <span class="title">x</span> =</span> random * <span class="number">2</span> - <span class="number">1</span> <span class="comment">// 长度坐标范围-1~1</span></span><br><span class="line">  <span class="function"><span class="keyword">val</span> <span class="title">y</span> =</span> random * <span class="number">2</span> - <span class="number">1</span> <span class="comment">// 宽度坐标范围-1~1</span></span><br><span class="line">  <span class="keyword">if</span> (x*x + y*y &lt; <span class="number">1</span>) <span class="number">1</span> <span class="keyword">else</span> <span class="number">0</span> <span class="comment">//区分出落在圆圈中的点。圆圈半径为1，所以点到圆心距离小于1</span></span><br><span class="line">&#125;.reduce(_ + _) <span class="comment">// 统计点的数量</span></span><br><span class="line">println(<span class="string">"Pi is roughly "</span> + <span class="number">4.0</span> * count / n)</span><br></pre></td></tr></table></figure>
+<h2 id="示例：定积分计算">示例：定积分计算</h2><p>假设现在想计算积分$\int_0^2 x^2dx$。当然，作为一个玩具级别的积分，可以直接看出结果为$\frac{2^3}{3} = 2.67$，正好便于验证代码。首先，还是要选定区域。作为一个递增函数，直接看$x=2$时$f(x) = x^2$的值，确定横轴范围为0-2，纵轴范围为0-4，所以在这个范围内抽样。函数下方的点数量c代表求的积分面积，n代表整个范围的面积，则:</p>
+<p>$$ \frac{\int}{2 * 4} = \frac{c}{n} =&gt; \int = \frac{8c}{n} $$</p>
+<p>python代码示例：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> random</span><br><span class="line"></span><br><span class="line">n = <span class="number">100000</span></span><br><span class="line">c = <span class="number">0.0</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> _ <span class="keyword">in</span> range(<span class="number">1</span>,n):</span><br><span class="line">    x = random.uniform(<span class="number">0</span>,<span class="number">2</span>)</span><br><span class="line">    y = random.uniform(<span class="number">0</span>,<span class="number">4</span>)</span><br><span class="line">    <span class="keyword">if</span> x * x &gt; y: <span class="comment"># 取函数下方的点，所以y的值应该小于x对应的函数值</span></span><br><span class="line">        c += <span class="number">1</span></span><br><span class="line">        </span><br><span class="line"><span class="keyword">print</span> <span class="number">8</span> * c / float(n)</span><br></pre></td></tr></table></figure>
+<h1 id="Markov_Chain">Markov Chain</h1><p>想象一个国家，其城市人口和农村人口会每年发生一次迁移，并且迁移概率是固定的。假设每年城市迁农村的概率是3%，农村迁城市的概率是5%。如果某一年，城市和农村的人口分别是2000和14000，那么下一年的人口分布是怎么样的？我们可以用如下的矩阵计算表示：<br>$$ \begin{bmatrix} 2000 &amp; 14000 \end{bmatrix} * \begin{bmatrix} 0.97 &amp; 0.03 \\\\0.05 &amp; 0.95 \end{bmatrix} = \begin{bmatrix} 2640 &amp; 13360 \end{bmatrix} $$<br>而作为一个个体，其实是在不同的状态（农村或城市）之间跳转，比如$t=1$时，是农村人，$t=2$时，是城市人。马尔可夫链就是生成这样一段状态序列的随机过程，其中城市和农村互相流动的矩阵，叫做迁移矩阵。马尔可夫链的这个随机过程满足马尔科夫性质，也就是某一个状态的值，只跟前一个状态相关。用公式表示就是： </p>
+<p>$$ P(X_{n} | X_{n-1}, … , X_{0}) = P(X_{n} | X_{n-1}) $$</p>
+<p>而迁移矩阵的每一个元素其实就对应着一个条件概率值。所以后面会同时用$P(j|i)$和$P_{ij}$这两种写法来代表迁移矩阵的某一项。</p>
+<p>现在回头来看刚才那个例子。当状态迭代到一定程度之后，会发现，城市和农村的人数都固定了，城市人数是10000，农村人数是6000。而且用任意一个总人口为16000的状态作为初始状态，最后的结果都是这个。对于个体来说，这就是个体会留在农村还是城市的概率分布，也就是留在城市和农村的概率比为5:3，这个分布也叫马尔可夫链的平稳分布。简单起见，我们这里就不加证明地简单描述下马尔可夫链的收敛性质（严谨的说，需要有一些前提条件才能保证必然收敛，不过前提条件不满足的情况不常见，所以就不增加解释成本了）：</p>
+<blockquote>
+<ul>
+<li>马尔科夫链收敛于平稳分布$\pi$，使得对于迁移矩阵$P$，$\pi$是方程$\pi P=\pi$的唯一解。把这个解用向量方式表示，就是该分布在各个取值上对应的概率，即$\pi = [\pi(0), \pi(1), … \pi(i), … ], \sum_i\pi(i)=1 $</li>
+<li>迁移矩阵$P$经过反复迭代之后本身也会收敛(每列结果相同)，才能满足平稳分布的要求，即:<br> $$ \lim\limits_{N\to\infty} P^n =  \begin{bmatrix} \pi(0) &amp; \pi(1) &amp; … &amp; \pi(i) &amp; … \\\\\pi(0) &amp; \pi(1) &amp; … &amp; \pi(i) &amp; … \\\\\pi(0) &amp; \pi(1) &amp; … &amp; \pi(i) &amp; … \\\ … &amp; … &amp; … &amp; … &amp; … \end{bmatrix}$$</li>
+</ul>
+</blockquote>
+<h1 id="第一个mcmc方法">第一个mcmc方法</h1><p>既然马尔科夫链可以收敛于一个平稳分布，如果这个分布恰好是我们需要采样的分布，那么当马尔科夫链在第n步收敛之后，其后续不断生成的序列$X_n, X_{n+1}, … $就可以当做是采样的样本。这就是MCMC方法的基本思想。那么如何找到符合条件的迁移矩阵$P$？</p>
+<p>学者们在研究之后提出了细致平稳条件，满足细致平稳条件的马尔科夫链可以收敛到指定的概率分布。细致平稳条件即对一个分布$\pi$，如果迁移矩阵$P$对任意$i,j$满足 $\pi(i)P_{ij} = \pi(j)P_{ji}$，那么$\pi$就是这个马尔科夫链的平稳分布。不加证明的通俗理解这个条件的含义，就是状态i转移到状态j的量被j到i的量给抵消了，就比如上一节的例子中，有多少城市人流动到农村，就会有相同数量的人从农村流动到城市。</p>
+<p>有了这个条件之后，就要想办法找一个满足这个条件的迁移矩阵。先从一个随便的普通迁移矩阵开始，为了简单起见，可以认为我们用了一个均匀分布的迁移矩阵，即每一项$P_{ij}$的值都是一样的。这个矩阵当然不满足细致平衡条件：</p>
+<p>$$\pi(i)P_{ij} \not= \pi(j)P_{ji}$$</p>
+<p>当然，如果直接让$P_{ij}=\pi(j), P_{ji}=\pi(i)$的话，上面的等式就成立了。但是如果直接这样构造马尔科夫链，显然是不具有收敛性质的。不过我们可以借鉴这个思路，引入$a_{ij}$使得$\pi(i)P_{ij}a_{ij} = \pi(j)P_{ji}a_{ji}$，并且让$a_{ij} = \pi(j)P_{ji}$，那么记$Q_{ij} = P_{ij}a_{ij}$，即由$P$和$a$结合的新马尔科夫链$Q$也能满足条件。这个时候，计算转移概率时，对$Q$的采样可以处理成先对$P$采样（可以用刚才说的均匀分布，或者正态分布也有成熟的方法，即box muller变换），然后把$a$当成一个接受率的概念，随机采样之后看是否到达$a_{ij} = \pi(j)P_{ji}$的条件，满足条件说明可以转移。梳理一下这个流程，可以得到我们的MCMC算法：</p>
+<blockquote>
+<p>$1$ 随机初始化状态$X_0$和迁移矩阵$P$<br>$2$ 循环进行采样(循环变量$t$)：</p>
+<blockquote>
+<p>$2.1$ 根据当前时刻的状态$X_t=x_t$，采样$y \sim P(y|x_t)$<br>$2.2$ 计算接受率$a_{x_ty}=\pi(y)P_{yx_t}$<br>$2.3$ 从均匀分布随机抽样一个值，如果小于$a_{x_ty}$，那么$X_{t+1} = y$，否则$X_{t+1}=x_t$</p>
+</blockquote>
+</blockquote>
+<p>简单解释一下。现在我们的目的是要按照转移矩阵$Q$进行跳转，2.1步代表先用原来的$P$进行跳转，跳转之后的值假设是$y$。2.2步的接受率就是将前后两个状态$i=x_t$和$j=y$代入$a_{ij} = \pi(j)P_{ji}$，2.3步采样随机数决定是否跳转。</p>
+<h1 id="Metropolis_Hastings算法">Metropolis Hastings算法</h1><p>上面的MCMC方法已经可以工作，但是实际中使用的Metropolis Hastings算法是基于上面的算法做了改进的。需要改进的点就在于接受率$a$如果偏小，那么马尔科夫链很容易拒绝跳转，导致收敛速度慢。实际上我们可以把$a$放大，只要保证对任意$i,j$，$max(a_{ij}, a_{ji})=1$即可。我们要计算的接受率是$a_{ij}$，如果$a_{ij}$更大，那么把新的$a_{ij}$放大到1即可，如果$a_{ij}$比较小，那么两边同时除以原来的$a_{ji}$，使得新的$a_{ji}$放大到1即可。于是我们得到了Metropolis Hastings算法：</p>
+<blockquote>
+<p>$1$ 随机初始化状态$X_0$和马尔科夫链矩阵$P$<br>$2$ 循环进行采样(循环变量$t$)：</p>
+<blockquote>
+<p>$2.1$ 根据当前时刻的状态$X_t=x_t$，采样$y \sim P(y|x_t)$<br>$2.2$ 计算接受率$a_{x_ty}=min(\frac {\pi(y)P_{yx_t}} {\pi(x_t)P_{x_ty}}, 1)$<br>$2.3$ 从均匀分布随机抽样一个值，如果小于$a_{x_ty}$，那么$X_{t+1} = y$，否则$X_{t+1}=x_t$</p>
+</blockquote>
+</blockquote>
+<p>我们尝试模拟一下beta分布。以下代码基于<code>参考资料1</code>改写：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> pylab <span class="keyword">as</span> pl</span><br><span class="line"><span class="keyword">import</span> scipy.special <span class="keyword">as</span> ss</span><br><span class="line"></span><br><span class="line"><span class="comment"># 完整的beta分布概率密度函数</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">beta</span><span class="params">(a, b, i)</span>:</span></span><br><span class="line">    e1 = ss.gamma(a + b)</span><br><span class="line">    e2 = ss.gamma(a)</span><br><span class="line">    e3 = ss.gamma(b)</span><br><span class="line">    e4 = i ** (a - <span class="number">1</span>)</span><br><span class="line">    e5 = (<span class="number">1</span> - i) ** (b - <span class="number">1</span>)</span><br><span class="line">    <span class="keyword">return</span> (e1/(e2*e3)) * e4 * e5</span><br><span class="line"></span><br><span class="line"><span class="comment"># beta分布概率密度函数去掉前面的常数项之后的形式</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">beta_s</span><span class="params">(a,b,i)</span>:</span></span><br><span class="line">    <span class="keyword">return</span> i**(a-<span class="number">1</span>)*(<span class="number">1</span>-i)**(b-<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># mcmc模拟</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">beta_mcmc</span><span class="params">(N_hops,a,b)</span>:</span></span><br><span class="line">    states = []</span><br><span class="line">    cur = random.uniform(<span class="number">0</span>,<span class="number">1</span>) <span class="comment"># 初始化状态</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">0</span>,N_hops):</span><br><span class="line">        states.append(cur)</span><br><span class="line">        next = random.uniform(<span class="number">0</span>,<span class="number">1</span>) <span class="comment">#从原来的迁移矩阵P采样，这里假设P是一个基于均匀分布的迁移矩阵</span></span><br><span class="line">        <span class="comment">#计算接受率，因为beta分布的常数项会抵消，所以用不带常数项的形式，能大幅提速。而且P是均匀分布，所以也相互抵消了</span></span><br><span class="line">        ap = min(beta_s(a,b,next)/beta_s(a,b,cur),<span class="number">1</span>) </span><br><span class="line">        <span class="keyword">if</span> random.uniform(<span class="number">0</span>,<span class="number">1</span>) &lt; ap: <span class="comment">#随机采样决定是否跳转</span></span><br><span class="line">            cur = next</span><br><span class="line">    <span class="keyword">return</span> states[-<span class="number">10000</span>:] <span class="comment">#取最后的一部分状态，保证已经收敛</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#可视化</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">plot_beta</span><span class="params">(a, b)</span>:</span></span><br><span class="line">    Ly = []</span><br><span class="line">    Lx = []</span><br><span class="line">    i_list = np.mgrid[<span class="number">0</span>:<span class="number">1</span>:<span class="number">100j</span>]</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> i_list:</span><br><span class="line">        Lx.append(i)</span><br><span class="line">        Ly.append(beta(a, b, i))</span><br><span class="line">    pl.plot(Lx, Ly, label=<span class="string">"Real Distribution: a="</span>+str(a)+<span class="string">", b="</span>+str(b))</span><br><span class="line">    pl.hist(beta_mcmc(<span class="number">1000000</span>,a,b),normed=<span class="keyword">True</span>,bins=<span class="number">50</span>, histtype=<span class="string">'step'</span>,</span><br><span class="line">            label=<span class="string">"Simulated_MCMC: a="</span>+str(a)+<span class="string">", b="</span>+str(b))</span><br><span class="line">    pl.legend()</span><br><span class="line">    pl.show()</span><br><span class="line"></span><br><span class="line">pl.rcParams[<span class="string">'figure.figsize'</span>] = (<span class="number">8.0</span>, <span class="number">4.0</span>)</span><br><span class="line">plot_beta(<span class="number">2</span>, <span class="number">5</span>)</span><br></pre></td></tr></table></figure>
+<p>输出的可视化结果如下图：</p>
+<p><img src="http://7xltg5.com1.z0.glb.clouddn.com/beta_mcmc.png" alt="beta_mcmc"></p>
+<h1 id="Gibbs_Sampling">Gibbs Sampling</h1><p>Gibbs Sampling需要应用在至少二维的数据上，所以下面先以二维的情况为例。</p>
+<p>当数据是二维的时候，我们需要模拟的是一个联合概率分布$P(x,y)$。当状态的跳转仅仅是在一个维度上变，另一个维度不变的时候（假设$y$变，$x$不变为恒定值$x_1$），如果用条件概率$P(y|x_1)$来作为这些点之间的转移概率，这种情况下就能满足细致平稳条件。简单的证明一下，假设$A(x_1,y_1), B(x_1,y_2)$是两个点，这两点之间做跳转，那么A和B对应的迁移概率分别是$P(y_2|x_1)$和$P(y_1|x_1)$，于是有：</p>
+<p>$$P(A)P(y_2|x_1)=P(x_1,y_1)P(y_2|x_1)=P(x_1)P(y_1|x_1)P(y_2|x_1)=P(x_1,y_2)P(y_1|x_1)=P(B)P(y_1|x_1)$$</p>
+<p>所以我们的迁移矩阵可以用上面的方法定义，即对二维变量$Z(x,y)$和需要采样的分布$p(x,y)$：</p>
+<p>$$<br>P(Z_2|Z_1)=<br>\begin{cases}<br>p(y_2|x_c)&amp; x_1 = x_2 = x_c \\<br>p(x_2|y_c)&amp; y_1 = y_2 = y_c \\<br>0&amp; 其它<br>\end{cases}<br>$$</p>
+<p>举一个简单的例子。假设我们需要模拟的变量的维度是性别和居住地（城市或农村），相当于在马尔科夫链那节的例子增加一个性别维度，迁移矩阵记为Q，概率分布记为p，那么$Q(男性城市人|男性农村人)=p(城市人|男性)$。</p>
+<p>根据上面构造的迁移矩阵，二维情况下的GS算法就出来了：</p>
+<blockquote>
+<p>$1$ 随机初始化状态$x_0$和$y_0$<br>$2$ 循环进行采样(循环变量$t$)：</p>
+<blockquote>
+<p>$2.1$ $y_{t+1} \sim p(y|x_{t})$<br>$2.2$ $x_{t+1} \sim p(x|y_{t+1})$</p>
+</blockquote>
+</blockquote>
+<p>也就是说，如果要从$(x_0, y_0)$跳转到$(x_1,y_1)$，中间会经过一层$(x_0,y_1)$的跳转，每次的跳转先在一个维度上变化。</p>
+<p>当然在实际应用中，无论是MH算法还是GS算法，一般都要应用在多维数据上。我们把上述二维的情况推广到多维，就是完整的GS算法：</p>
+<blockquote>
+<p>$1$ 随机初始化状态$x_i^{(0)}, dim(i) = n$<br>$2$ 循环进行采样(循环变量$t$)：</p>
+<blockquote>
+<p>$2.1$ $x_1^{(t+1)} \sim p(x_1|x_2^{(t)}, x_3^{(t)},…,x_n^{(t)})$<br>$2.2$ $x_2^{(t+1)} \sim p(x_2|x_1^{(t+1)}, x_3^{(t)},…,x_n^{(t)})$<br>$2.3$ …<br>$2.4$ $x_n^{(t+1)} \sim p(x_n|x_1^{(t+1)}, x_2^{(t+1)},…,x_{n-1}^{(t+1)})$</p>
+</blockquote>
+</blockquote>
+<p>可以看到，多维的情况下，每一次采样还是只能移动一个维度，其余的$n-1$个维度都作为条件。</p>
+<p>相比MH算法，GS算法每次跳转都没有被拒绝的可能，所以一般会说GS算法是MH算法的一个特例，即接受率为1的MH算法。</p>
+<p>最后，我们用Gibbs Sampling来模拟一下二维正态分布。二维正态分布的两个维度本身就是正态分布，假设$X \sim N(\mu_x, s_x^2)$，$Y \sim N(\mu_y, s_y^2)$，$X$和$Y$的相关系数为$\rho$，那么可以推导出条件分布(推导过程见<code>参考资料3</code>):<br>$$(Y|X=x) \sim N(\mu_y + \rho \frac {s_y}{s_x}(X-\mu_x), s_y^2(1-\rho^2))$$</p>
+<p>根据以上条件概率的公式，就可以写出相应的代码了：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> pylab <span class="keyword">as</span> pl</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> math</span><br><span class="line"></span><br><span class="line"><span class="comment"># x和y两个维度的均值都是0</span></span><br><span class="line"></span><br><span class="line">sx = <span class="number">8</span> <span class="comment"># x维度正态分布的标准差</span></span><br><span class="line">sy = <span class="number">2</span> <span class="comment"># y维度正态分布的标准差</span></span><br><span class="line">cor = <span class="number">0.5</span> <span class="comment"># x和y的相关系数</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># x维度的概率密度函数</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">pdf_gaussian_x</span><span class="params">(x)</span>:</span></span><br><span class="line">    <span class="keyword">return</span> (<span class="number">1</span> / (math.sqrt(<span class="number">2</span> * math.pi) * sx)) * math.exp(-math.pow(x, <span class="number">2</span>) / (<span class="number">2</span> * math.pow(sx, <span class="number">2</span>)))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 条件分布 p(x|y)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">pxgiveny</span><span class="params">(y)</span>:</span></span><br><span class="line">    <span class="keyword">return</span> np.random.normal(y * (sx/sy) * cor, sx * math.sqrt(<span class="number">1</span> - cor * cor))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 条件分布 p(y|x)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">pygivenx</span><span class="params">(x)</span>:</span></span><br><span class="line">    <span class="keyword">return</span> np.random.normal(x * (sy/sx) * cor, sy * math.sqrt(<span class="number">1</span> - cor * cor))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">gibbs</span><span class="params">(N_hop)</span>:</span></span><br><span class="line"></span><br><span class="line">    x_states = []</span><br><span class="line">    y_states = []</span><br><span class="line">    </span><br><span class="line">    <span class="comment">#状态随机初始化</span></span><br><span class="line">    x = np.random.uniform()</span><br><span class="line">    y = np.random.uniform()</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> _ <span class="keyword">in</span> range(N_hop):        </span><br><span class="line">        x = pxgiveny(y) <span class="comment">#根据y采样x</span></span><br><span class="line">        y = pygivenx(x) <span class="comment">#根据x采样y</span></span><br><span class="line">        x_states.append(x)</span><br><span class="line">        y_states.append(y)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> x_states[-<span class="number">1000</span>:], y_states[-<span class="number">1000</span>:]</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">plot_gibbs</span><span class="params">()</span>:</span></span><br><span class="line">    x_sim, _ = gibbs(<span class="number">100000</span>)</span><br><span class="line">    </span><br><span class="line">    x1 = np.arange(-<span class="number">30</span>, <span class="number">30</span>, <span class="number">1</span>)</span><br><span class="line">    pl.hist(x_sim, normed=<span class="keyword">True</span>, bins=x1, histtype=<span class="string">'step'</span>, label=<span class="string">"Simulated_Gibbs"</span>)</span><br><span class="line">    </span><br><span class="line">    x1 = np.arange(-<span class="number">30</span>, <span class="number">30</span>, <span class="number">0.1</span>)</span><br><span class="line">    px1 = np.zeros(len(x1))</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(len(x1)):</span><br><span class="line">        px1[i] = pdf_gaussian_x(x1[i])</span><br><span class="line">    </span><br><span class="line">    pl.plot(x1, px1, label=<span class="string">"Real Distribution"</span>)</span><br><span class="line">    pl.legend()</span><br><span class="line">    pl.show()</span><br><span class="line"></span><br><span class="line">plot_gibbs()</span><br></pre></td></tr></table></figure>
+<p>作图部分为了兼顾方便和清晰，只基于一个维度做了可视化，结果如下图：<br><img src="http://7xltg5.com1.z0.glb.clouddn.com/gibbs.png" alt="gibbs"></p>
+<h1 id="应用场景">应用场景</h1><p>基于MCMC的采样方法主要有两类应用场景。第一类是应用于求函数的期望值，或者说是积分问题。另一类是求解最优化问题。</p>
+<h2 id="积分计算">积分计算</h2><p>采样有一个典型的应用场景，就是用在贝叶斯估计中。根据贝叶斯公式，后验估计可以写成：</p>
+<p>$$ P(\theta | X) = \frac {P(X | \theta)P(\theta)} {P(X)} = \frac {P(X | \theta)P(\theta)} {\int_\theta P(X | \theta)P(\theta)d\theta} $$</p>
+<p>在这里，似然$P(X | \theta)$是$\theta$的函数，$P(\theta)$作为先验代表了$\theta$的概率密度，我们需要求解的项是$\int_\theta P(X | \theta)P(\theta)d\theta$。那么我们可以把问题重新描述如下：</p>
+<p>假设$Z$是一个连续随机变量(离散的情况类似)，其概率密度函数为$p(z)$，现在需要计算函数$f(z)$的期望值，即</p>
+<p>$$E[f(z)] = \int f(z)p(z)dz$$</p>
+<p>如果我们能根据$p(z)$采样出来一堆点$z^{(0)},z^{(1)},… z^{(n)}$，那么我们用这些点代入函数求均值，随着采样的点增多，得到的结果就越来越逼近理论结果：</p>
+<p>$$  E[f(z)] = \lim\limits_{N\to\infty}  \frac{1}{N} \sum_{t=1}^{N} f(z^{(t)})  $$</p>
+<p>比较著名的利用采样计算后验概率，估计模型参数的就是topic model中的LDA了。当然LDA本身内容太多，本文中就不再提及相关内容了。</p>
+<h2 id="最优化">最优化</h2><p>最优化问题就是求解函数的最小/最大值的问题。最优化的方法有很多，跟MCMC有关的最优化方法就是模拟退火法。模拟退火（Simulated Annealing）是一种通用的最优化方法，理论上可以做到全局最优化。当然实际使用中，如果要保证达到全局最优，那么退火速度将会慢到无法接受，所以实际使用中不能保证全局最优，不过也比一般的贪心方法要效果好。</p>
+<p>上面所谓的贪心方法指的就是爬山法。爬山法会随机搜索相邻状态，并且向最优的状态移动，直至相邻状态没有更好状态为止。爬山法作为纯贪心方法很多时候由于起始点不够好，只能找到局部最优解（与梯度下降还是不一样的，梯度下降是根据梯度方向调整，爬山法是随机采样），而模拟退火的意思是，如果遇到更坏的情况，那么会有一定概率接受，这样一来就能跳出局部最优解。</p>
+<p>然而这只是SA算法的大体思想，按照这个大体思想也能看懂代码。但如果要探究到底是按照什么原理去接受所谓的更坏情况，就要跟MCMC扯上关系了。假设我们需要最小化的函数是$f(x)$，SA算法将其置于Gibbs分布（也叫Boltzmann分布）中，即：</p>
+<p>$$P(x) = \frac {1} {Z} e^{\frac {-f(x)} {T}}$$</p>
+<p>这里$Z$是规范化项，$T$是参数。这个分布的特性是，当$T$很大的时候，接近均匀分布，而$T$很小的时候，函数$-f(x)$的最大值会被无限放大，导致在相应状态下的概率接近1，即$T \rightarrow 0，P(x = argmin_x f(x)) = 1$。这也就是说，如果我们能在$T$很小的情况下采样得到$x$，那么这个对应的函数值基本上可以断定是函数最小值。不过当$T$很小的时候，由于分布过于陡峭，所以用MH算法得到的接受率往往会非常小，导致一直拒绝跳转。所以我们可以从$T$比较大的情况开始采样，比如一开始根据$T_1$和初始点$x_0$采样得到$x_1$，然后更新$T$缩小到$T_2$，这个时候根据$x_1$的值为出发点继续采样，得到$x_2$，如此循环，每一步的采样结果为下一步减少了范围，使得采样过程保持稳定，最后就能逐步的把$T$减小到一个很小的值。</p>
+<p>下面就通过代码实现来计算一个函数的最小值：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">import</span> math</span><br><span class="line"></span><br><span class="line"><span class="comment"># 目标函数，有两个变量。为了让收敛过程看起来清晰一点，找了一个复杂一点的函数</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">f</span><span class="params">(x)</span>:</span></span><br><span class="line">    x1 = x[<span class="number">0</span>]</span><br><span class="line">    x2 = x[<span class="number">1</span>]</span><br><span class="line">    obj = x1**<span class="number">2</span> + x2**<span class="number">2</span> - <span class="number">0.1</span>*math.cos(<span class="number">6.0</span> * math.pi * x1) - <span class="number">0.1</span>*math.cos(<span class="number">6.0</span> * math.pi * x2)</span><br><span class="line">    <span class="keyword">return</span> obj</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">x_start = [<span class="number">1</span>, -<span class="number">.5</span>] <span class="comment"># 初始点</span></span><br><span class="line">t_start = <span class="number">1</span> <span class="comment">#起始温度参数</span></span><br><span class="line">t_end = <span class="number">0.02</span> <span class="comment">#结束温度参数</span></span><br><span class="line">n = <span class="number">50</span> <span class="comment">#温度变化分几轮做完</span></span><br><span class="line">frac = (t_end/t_start)**(<span class="number">1.0</span>/(n-<span class="number">1.0</span>)) <span class="comment">#每次温度缩小系数</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#记录每一次温度变化之后的最终采样结果</span></span><br><span class="line">x = np.zeros((n+<span class="number">1</span>,<span class="number">2</span>))</span><br><span class="line">x[<span class="number">0</span>] = x_start</span><br><span class="line"></span><br><span class="line"><span class="comment"># 每轮mcmc采样中新一轮跳转状态</span></span><br><span class="line">xi = np.zeros(<span class="number">2</span>)</span><br><span class="line">xi = x_start</span><br><span class="line"></span><br><span class="line"><span class="comment"># 每轮mcmc采样中当前最好状态</span></span><br><span class="line">xc = np.zeros(<span class="number">2</span>)</span><br><span class="line">xc = x[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 对应函数值的当前最好状态和每轮状态</span></span><br><span class="line">fc = f(xi)</span><br><span class="line">fs = np.zeros(n+<span class="number">1</span>)</span><br><span class="line">fs[<span class="number">0</span>] = fc</span><br><span class="line"></span><br><span class="line">t = t_start</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(n):</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> range(<span class="number">200</span>): <span class="comment"># MCMC跳转200次</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 在上一轮采样结果的附近采样</span></span><br><span class="line">        xi[<span class="number">0</span>] = random.random() - <span class="number">0.5</span> + xc[<span class="number">0</span>]</span><br><span class="line">        xi[<span class="number">1</span>] = random.random() - <span class="number">0.5</span> + xc[<span class="number">1</span>]</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 根据gibbs分布计算接受率</span></span><br><span class="line">        a = math.exp(-(f(xi)-fc)/t)</span><br><span class="line">       </span><br><span class="line">        <span class="comment"># 如果采样满足接受率条件，或者本来就取到了更小的值，就接受跳转</span></span><br><span class="line">        <span class="keyword">if</span> (random.random() &lt; a) <span class="keyword">or</span> (f(xi) &lt; fc):</span><br><span class="line">            xc[<span class="number">0</span>] = xi[<span class="number">0</span>]</span><br><span class="line">            xc[<span class="number">1</span>] = xi[<span class="number">1</span>]</span><br><span class="line">            fc = f(xc)</span><br><span class="line">         </span><br><span class="line">    <span class="comment"># 存储每轮MCMC采样结果</span></span><br><span class="line">    x[i+<span class="number">1</span>][<span class="number">0</span>] = xc[<span class="number">0</span>]</span><br><span class="line">    x[i+<span class="number">1</span>][<span class="number">1</span>] = xc[<span class="number">1</span>]</span><br><span class="line">    fs[i+<span class="number">1</span>] = fc</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 减小温度参数</span></span><br><span class="line">    t = frac * t</span><br><span class="line">   </span><br><span class="line"><span class="comment"># 可视化</span></span><br><span class="line">fig = plt.figure()</span><br><span class="line">ax1 = fig.add_subplot(<span class="number">211</span>)</span><br><span class="line">ax1.plot(fs,<span class="string">'r.-'</span>)</span><br><span class="line">ax1.legend([<span class="string">'Objective'</span>])</span><br><span class="line"></span><br><span class="line">ax2 = fig.add_subplot(<span class="number">212</span>)</span><br><span class="line">ax2.plot(x[:,<span class="number">0</span>],<span class="string">'b.-'</span>)</span><br><span class="line">ax2.plot(x[:,<span class="number">1</span>],<span class="string">'g--'</span>)</span><br><span class="line">ax2.legend([<span class="string">'x1'</span>,<span class="string">'x2'</span>])</span><br><span class="line"></span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p>通过可视化输出可以看到，目标函数值虽然在收敛过程中会出现变大的情况，但是最终还是落到最小值，而相应的变量也逐渐收敛：</p>
+<p><img src="http://7xltg5.com1.z0.glb.clouddn.com/sim_anneal.png" alt="sa"></p>
+<p>除了用在通用的最优化方法上面，MCMC也可以应用在具体的问题上，比如在<a href="http://statweb.stanford.edu/~cgates/PERSI/papers/MCMCRev.pdf" target="_blank" rel="external">The Markov Chain Monte Carlo Revolution</a>一文中，就提到过一个破译凯撒密码的例子。通过随机生成解密key，根据解密key替换原文后的评估分数决定是否跳转（跳转就是交换任意两个字母的替换规则），最后得到收敛的结果就是正确的解密key。<code>参考资料1</code>对此有进一步的解析。</p>
+<p><strong>参考资料：</strong></p>
+<ol>
+<li><a href="http://mlwhiz.com/blog/2015/08/19/MCMC_Algorithms_Beta_Distribution/" target="_blank" rel="external">My Tryst With MCMC Algorithms</a>及<a href="http://mlwhiz.com/blog/2015/08/21/MCMC_Algorithms_Cryptography/" target="_blank" rel="external">外一篇</a></li>
+<li><a href="http://www.flickering.cn/%E6%95%B0%E5%AD%A6%E4%B9%8B%E7%BE%8E/2014/06/lda%E6%95%B0%E5%AD%A6%E5%85%AB%E5%8D%A6mcmc-%E5%92%8C-gibbs-sampling/" target="_blank" rel="external">LDA数学八卦</a></li>
+<li><a href="https://onlinecourses.science.psu.edu/stat414/node/118" target="_blank" rel="external">Penn State University STAT414 online course</a></li>
+</ol>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/mcmc/" rel="tag">#mcmc</a>
+          
+            <a href="/tags/sampling/" rel="tag">#sampling</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/08/21/elements-of-scale阅读笔记/" rel="next">Elements of Scale阅读笔记</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+              <div class="ds-thread" data-thread-key="2016/03/05/mcmc方法小记/"
+                   data-title="MCMC方法小记" data-url="http://sunyi514.github.io/2016/03/05/mcmc方法小记/">
+              </div>
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xltg5.com1.z0.glb.clouddn.com/author.jpg" alt="奔跑的兔子" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">奔跑的兔子</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"></p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">8</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">2</span>
+              <span class="site-state-item-name">分类</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">11</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/u/1731546452" target="_blank">weibo</a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#采样"><span class="nav-number">1.</span> <span class="nav-text">采样</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Mento_Carlo"><span class="nav-number">2.</span> <span class="nav-text">Mento Carlo</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#示例：圆周率计算"><span class="nav-number">2.1.</span> <span class="nav-text">示例：圆周率计算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#示例：定积分计算"><span class="nav-number">2.2.</span> <span class="nav-text">示例：定积分计算</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Markov_Chain"><span class="nav-number">3.</span> <span class="nav-text">Markov Chain</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第一个mcmc方法"><span class="nav-number">4.</span> <span class="nav-text">第一个mcmc方法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Metropolis_Hastings算法"><span class="nav-number">5.</span> <span class="nav-text">Metropolis Hastings算法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Gibbs_Sampling"><span class="nav-number">6.</span> <span class="nav-text">Gibbs Sampling</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#应用场景"><span class="nav-number">7.</span> <span class="nav-text">应用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#积分计算"><span class="nav-number">7.1.</span> <span class="nav-text">积分计算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#最优化"><span class="nav-number">7.2.</span> <span class="nav-text">最优化</span></a></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp;  2013 - 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">奔跑的兔子</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"sunyi514"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+    
+     
+     
+  	<script src="/js/ua-parser.min.js"></script>
+  	<script src="/js/hook-duoshuo.js"></script>
+  
+
+    
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+
+<!-- Begin: Injected MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({"TeX":{"equationNumbers":{"autoNumber":["AMS"],"useLabelIds":true}},"SVG":{"linebreaks":{"automatic":true}},"HTML-CSS":{"preferredFont":"TeX","availableFonts":["STIX","TeX"],"linebreaks":{"automatic:true":null}},"tex2jax":{"inlineMath":[["$","$"],["\\(","\\)"]],"processEscapes":true,"skipTags":["script","noscript","style","textarea","pre","code"]},"messageStyle":"none"});
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<!-- End: Injected MathJax -->
+</body>
+</html>
