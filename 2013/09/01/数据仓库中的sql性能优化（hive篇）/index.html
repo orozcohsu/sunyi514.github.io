@@ -53,7 +53,7 @@
 <meta property="og:image" content="http://7xltg5.com1.z0.glb.clouddn.com/mr.jpg">
 <meta property="og:image" content="http://7xltg5.com1.z0.glb.clouddn.com/mr_skew.jpg">
 <meta property="og:image" content="http://7xltg5.com1.z0.glb.clouddn.com/skew_join.jpg">
-<meta property="og:updated_time" content="2016-06-17T01:06:35.000Z">
+<meta property="og:updated_time" content="2016-07-09T08:09:46.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="数据仓库中的SQL性能优化（Hive篇）">
 <meta name="twitter:description" content="一个Hive查询生成多个map reduce job，一个map reduce job又有map，reduce，spill，shuffle，sort等多个阶段，所以针对hive查询的优化可以大致分为针对MR中单个步骤的优化（其中又会有细分），针对MR全局的优化，和针对整个查询（多MR job）的优化，下文会分别阐述。
@@ -339,7 +339,7 @@
 <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">set</span> hive.<span class="keyword">optimize</span>.skewjoin = <span class="literal">true</span>;</span></span><br></pre></td></tr></table></figure>
 <p>还有要告诉hive如何判断特殊值，根据<code>hive.skewjoin.key</code>设置的数量hive可以知道，比如默认值是100000，那么超过100000条记录的值就是特殊值。<br>skew join的流程可以用下图描述：</p>
 <p><img src="http://7xltg5.com1.z0.glb.clouddn.com/skew_join.jpg" alt="skew_join"></p>
-<p>另外对于特殊值的处理往往跟业务有关系，所以也可以从业务角度重写sql解决。比如前面这种倾斜join，可以把特殊值隔离开来（从业务角度说，users表应该不存在<code>user_id = 0</code>的情况，但是这里还是假设有这个值，使得这个写法更加具有通用性）：</p>
+<p>另外对于特殊值的处理往往跟业务有关系，所以也可以从业务角度重写sql解决。比如前面这种倾斜join，可以把特殊值隔离开来（从业务角度说，users表应该不存在<code>user_id = 0</code>的情况，所以这个例子举得不太恰当，只能纯粹看做一个优化问题来看），这样特殊值单独join肯定会转化成map join，非特殊值就是没有倾斜的普通join了：</p>
 <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">select</span> a.* <span class="keyword">from</span> </span><br><span class="line">(</span><br><span class="line"><span class="keyword">select</span> a.*</span><br><span class="line"><span class="keyword">from</span> (<span class="keyword">select</span> * <span class="keyword">from</span> <span class="keyword">logs</span> <span class="keyword">where</span> user_id = <span class="number">0</span>)  a </span><br><span class="line"><span class="keyword">join</span> (<span class="keyword">select</span> * <span class="keyword">from</span> <span class="keyword">users</span> <span class="keyword">where</span> user_id = <span class="number">0</span>) b </span><br><span class="line"><span class="keyword">on</span> a.user_id =  b.user_id</span><br><span class="line"><span class="keyword">union</span> all</span><br><span class="line"><span class="keyword">select</span> a.* </span><br><span class="line"><span class="keyword">from</span> <span class="keyword">logs</span> a <span class="keyword">join</span> <span class="keyword">users</span> b</span><br><span class="line"><span class="keyword">on</span> a.user_id &lt;&gt; <span class="number">0</span> <span class="keyword">and</span> a.user_id = b.user_id</span><br><span class="line">)<span class="keyword">t</span>;</span></span><br></pre></td></tr></table></figure>
 <p>大部分时候倾斜是因为某一个特殊值，但是也有极端的情况是因为<strong>某一类特殊值</strong>，这往往是业务设计造成。比如对于商品<code>item_id</code>的编码，除了本身的id序列，还人为的把item的类型也作为编码放在最后两位，这样如果类型1的编码是00，类型2的编码是01，并且类型1是主要商品类，将会造成以00为结尾的商品整体倾斜。这时，如果reduce的数量恰好是100的整数倍，会造成partitioner把00结尾的<code>item_id</code>都hash到同一个reducer，引爆问题。当然，这种情况解决不难，只需要设置合适的reduce值，但是这种坑就会比较隐蔽。</p>
 <h1 id="SQL整体优化">SQL整体优化</h1><p>前面对于单个job如何做优化已经做过详细讨论，但是hive查询会生成多个job，针对多个job，有什么地方需要优化？</p>

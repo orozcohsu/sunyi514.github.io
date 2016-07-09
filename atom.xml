@@ -531,7 +531,7 @@
     <link href="http://sunyi514.github.io/2013/09/01/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93%E4%B8%AD%E7%9A%84sql%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%EF%BC%88hive%E7%AF%87%EF%BC%89/"/>
     <id>http://sunyi514.github.io/2013/09/01/数据仓库中的sql性能优化（hive篇）/</id>
     <published>2013-09-01T10:01:52.000Z</published>
-    <updated>2016-06-17T01:06:35.000Z</updated>
+    <updated>2016-07-09T08:09:46.000Z</updated>
     
     <content type="html">&lt;p&gt;一个Hive查询生成多个map reduce job，一个map reduce job又有map，reduce，spill，shuffle，sort等多个阶段，所以针对hive查询的优化可以大致分为针对MR中单个步骤的优化（其中又会有细分），针对MR全局的优化，和针对整个查询（多MR job）的优化，下文会分别阐述。&lt;/p&gt;
 &lt;p&gt;&lt;img src=&quot;http://7xltg5.com1.z0.glb.clouddn.com/hive_opt_section.jpg&quot; alt=&quot;hive_opt_section&quot;&gt;&lt;/p&gt;
@@ -622,7 +622,7 @@
 &lt;figure class=&quot;highlight sql&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;operator&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;set&lt;/span&gt; hive.&lt;span class=&quot;keyword&quot;&gt;optimize&lt;/span&gt;.skewjoin = &lt;span class=&quot;literal&quot;&gt;true&lt;/span&gt;;&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
 &lt;p&gt;还有要告诉hive如何判断特殊值，根据&lt;code&gt;hive.skewjoin.key&lt;/code&gt;设置的数量hive可以知道，比如默认值是100000，那么超过100000条记录的值就是特殊值。&lt;br&gt;skew join的流程可以用下图描述：&lt;/p&gt;
 &lt;p&gt;&lt;img src=&quot;http://7xltg5.com1.z0.glb.clouddn.com/skew_join.jpg&quot; alt=&quot;skew_join&quot;&gt;&lt;/p&gt;
-&lt;p&gt;另外对于特殊值的处理往往跟业务有关系，所以也可以从业务角度重写sql解决。比如前面这种倾斜join，可以把特殊值隔离开来（从业务角度说，users表应该不存在&lt;code&gt;user_id = 0&lt;/code&gt;的情况，但是这里还是假设有这个值，使得这个写法更加具有通用性）：&lt;/p&gt;
+&lt;p&gt;另外对于特殊值的处理往往跟业务有关系，所以也可以从业务角度重写sql解决。比如前面这种倾斜join，可以把特殊值隔离开来（从业务角度说，users表应该不存在&lt;code&gt;user_id = 0&lt;/code&gt;的情况，所以这个例子举得不太恰当，只能纯粹看做一个优化问题来看），这样特殊值单独join肯定会转化成map join，非特殊值就是没有倾斜的普通join了：&lt;/p&gt;
 &lt;figure class=&quot;highlight sql&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;operator&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;select&lt;/span&gt; a.* &lt;span class=&quot;keyword&quot;&gt;from&lt;/span&gt; &lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;(&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;select&lt;/span&gt; a.*&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;from&lt;/span&gt; (&lt;span class=&quot;keyword&quot;&gt;select&lt;/span&gt; * &lt;span class=&quot;keyword&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;logs&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;where&lt;/span&gt; user_id = &lt;span class=&quot;number&quot;&gt;0&lt;/span&gt;)  a &lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;join&lt;/span&gt; (&lt;span class=&quot;keyword&quot;&gt;select&lt;/span&gt; * &lt;span class=&quot;keyword&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;users&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;where&lt;/span&gt; user_id = &lt;span class=&quot;number&quot;&gt;0&lt;/span&gt;) b &lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;on&lt;/span&gt; a.user_id =  b.user_id&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;union&lt;/span&gt; all&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;select&lt;/span&gt; a.* &lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;logs&lt;/span&gt; a &lt;span class=&quot;keyword&quot;&gt;join&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;users&lt;/span&gt; b&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;on&lt;/span&gt; a.user_id &amp;lt;&amp;gt; &lt;span class=&quot;number&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;and&lt;/span&gt; a.user_id = b.user_id&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;)&lt;span class=&quot;keyword&quot;&gt;t&lt;/span&gt;;&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
 &lt;p&gt;大部分时候倾斜是因为某一个特殊值，但是也有极端的情况是因为&lt;strong&gt;某一类特殊值&lt;/strong&gt;，这往往是业务设计造成。比如对于商品&lt;code&gt;item_id&lt;/code&gt;的编码，除了本身的id序列，还人为的把item的类型也作为编码放在最后两位，这样如果类型1的编码是00，类型2的编码是01，并且类型1是主要商品类，将会造成以00为结尾的商品整体倾斜。这时，如果reduce的数量恰好是100的整数倍，会造成partitioner把00结尾的&lt;code&gt;item_id&lt;/code&gt;都hash到同一个reducer，引爆问题。当然，这种情况解决不难，只需要设置合适的reduce值，但是这种坑就会比较隐蔽。&lt;/p&gt;
 &lt;h1 id=&quot;SQL整体优化&quot;&gt;SQL整体优化&lt;/h1&gt;&lt;p&gt;前面对于单个job如何做优化已经做过详细讨论，但是hive查询会生成多个job，针对多个job，有什么地方需要优化？&lt;/p&gt;
@@ -658,7 +658,7 @@
     <link href="http://sunyi514.github.io/2013/04/30/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93%E4%B8%AD%E7%9A%84sql%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%EF%BC%88mysql%E7%AF%87%EF%BC%89/"/>
     <id>http://sunyi514.github.io/2013/04/30/数据仓库中的sql性能优化（mysql篇）/</id>
     <published>2013-04-30T09:46:17.000Z</published>
-    <updated>2016-06-17T01:07:01.000Z</updated>
+    <updated>2016-07-09T08:11:05.000Z</updated>
     
     <content type="html">&lt;p&gt;做数据仓库的头两年，使用高配置单机 + MySQL的方式来实现所有的计算（包括数据的ETL，以及报表计算。没有OLAP）。用过MySQL自带的MYISAM和列存储引擎Infobright。这篇文章总结了自己和团队在那段时间碰到的一些常见性能问题和解决方案。&lt;/p&gt;
 &lt;p&gt;P.S.如果没有特别指出，下面说的mysql都是指用MYISAM做存储引擎。&lt;/p&gt;
@@ -832,13 +832,13 @@
 &lt;tbody&gt;
 &lt;tr&gt;
 &lt;td&gt;1&lt;/td&gt;
-&lt;td&gt;毛巾&lt;/td&gt;
-&lt;td&gt;生活用品&lt;/td&gt;
+&lt;td&gt;iphone 5&lt;/td&gt;
+&lt;td&gt;手机&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;2&lt;/td&gt;
-&lt;td&gt;脸盆&lt;/td&gt;
-&lt;td&gt;生活用品&lt;/td&gt;
+&lt;td&gt;iphone 5s&lt;/td&gt;
+&lt;td&gt;手机&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;……&lt;/td&gt;
