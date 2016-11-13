@@ -1042,7 +1042,7 @@
         
           <span itemprop="articleBody"><p>一个Hive查询生成多个map reduce job，一个map reduce job又有map，reduce，spill，shuffle，sort等多个阶段，所以针对hive查询的优化可以大致分为针对MR中单个步骤的优化（其中又会有细分），针对MR全局的优化，和针对整个查询（多MR job）的优化，下文会分别阐述。</p>
 <p><img src="http://7xltg5.com1.z0.glb.clouddn.com/hive_opt_section.jpg" alt="hive_opt_section"></p>
-<p>在开始之前，先把MR的流程图帖出来（摘自Hadoop权威指南），方便后面对照。另外要说明的是，这个优化只是针对Hive 0.9版本，而不是后来Hortonwork发起Stinger项目之后的版本。相对应的Hadoop版本是1.x而非2.x。</p>
+<p>在开始之前，先把MR的流程图帖出来（摘自Hadoop权威指南），方便后面对照。本文写作时，使用hive0.9版本 + hadoop 1.x版本。</p>
 <p><img src="http://7xltg5.com1.z0.glb.clouddn.com/mr.jpg" alt="mr process"></p>
 <h1 id="Map阶段的优化(map_phase)">Map阶段的优化(map phase)</h1><p>Map阶段的优化，主要是确定合适的map数。那么首先要了解map数的计算公式：</p>
 <figure class="highlight processing"><table><tr><td class="code"><pre><span class="line">num_map_tasks = <span class="built_in">max</span>[$&#123;mapred.<span class="built_in">min</span>.<span class="built_in">split</span>.<span class="built_in">size</span>&#125;,</span><br><span class="line">                <span class="built_in">min</span>($&#123;dfs.block.<span class="built_in">size</span>&#125;, $&#123;mapred.<span class="built_in">max</span>.<span class="built_in">split</span>.<span class="built_in">size</span>&#125;)]</span><br></pre></td></tr></table></figure>

@@ -531,11 +531,11 @@
     <link href="http://sunyi514.github.io/2013/09/01/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93%E4%B8%AD%E7%9A%84sql%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%EF%BC%88hive%E7%AF%87%EF%BC%89/"/>
     <id>http://sunyi514.github.io/2013/09/01/数据仓库中的sql性能优化（hive篇）/</id>
     <published>2013-09-01T10:01:52.000Z</published>
-    <updated>2016-11-12T11:29:54.000Z</updated>
+    <updated>2016-11-13T01:25:49.000Z</updated>
     
     <content type="html">&lt;p&gt;一个Hive查询生成多个map reduce job，一个map reduce job又有map，reduce，spill，shuffle，sort等多个阶段，所以针对hive查询的优化可以大致分为针对MR中单个步骤的优化（其中又会有细分），针对MR全局的优化，和针对整个查询（多MR job）的优化，下文会分别阐述。&lt;/p&gt;
 &lt;p&gt;&lt;img src=&quot;http://7xltg5.com1.z0.glb.clouddn.com/hive_opt_section.jpg&quot; alt=&quot;hive_opt_section&quot;&gt;&lt;/p&gt;
-&lt;p&gt;在开始之前，先把MR的流程图帖出来（摘自Hadoop权威指南），方便后面对照。另外要说明的是，这个优化只是针对Hive 0.9版本，而不是后来Hortonwork发起Stinger项目之后的版本。相对应的Hadoop版本是1.x而非2.x。&lt;/p&gt;
+&lt;p&gt;在开始之前，先把MR的流程图帖出来（摘自Hadoop权威指南），方便后面对照。本文写作时，使用hive0.9版本 + hadoop 1.x版本。&lt;/p&gt;
 &lt;p&gt;&lt;img src=&quot;http://7xltg5.com1.z0.glb.clouddn.com/mr.jpg&quot; alt=&quot;mr process&quot;&gt;&lt;/p&gt;
 &lt;h1 id=&quot;Map阶段的优化(map_phase)&quot;&gt;Map阶段的优化(map phase)&lt;/h1&gt;&lt;p&gt;Map阶段的优化，主要是确定合适的map数。那么首先要了解map数的计算公式：&lt;/p&gt;
 &lt;figure class=&quot;highlight processing&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;num_map_tasks = &lt;span class=&quot;built_in&quot;&gt;max&lt;/span&gt;[$&amp;#123;mapred.&lt;span class=&quot;built_in&quot;&gt;min&lt;/span&gt;.&lt;span class=&quot;built_in&quot;&gt;split&lt;/span&gt;.&lt;span class=&quot;built_in&quot;&gt;size&lt;/span&gt;&amp;#125;,&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;                &lt;span class=&quot;built_in&quot;&gt;min&lt;/span&gt;($&amp;#123;dfs.block.&lt;span class=&quot;built_in&quot;&gt;size&lt;/span&gt;&amp;#125;, $&amp;#123;mapred.&lt;span class=&quot;built_in&quot;&gt;max&lt;/span&gt;.&lt;span class=&quot;built_in&quot;&gt;split&lt;/span&gt;.&lt;span class=&quot;built_in&quot;&gt;size&lt;/span&gt;&amp;#125;)]&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
@@ -668,7 +668,7 @@
     <link href="http://sunyi514.github.io/2013/04/30/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93%E4%B8%AD%E7%9A%84sql%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%EF%BC%88mysql%E7%AF%87%EF%BC%89/"/>
     <id>http://sunyi514.github.io/2013/04/30/数据仓库中的sql性能优化（mysql篇）/</id>
     <published>2013-04-30T09:46:17.000Z</published>
-    <updated>2016-07-09T08:11:05.000Z</updated>
+    <updated>2016-11-13T01:25:59.000Z</updated>
     
     <content type="html">&lt;p&gt;做数据仓库的头两年，使用高配置单机 + MySQL的方式来实现所有的计算（包括数据的ETL，以及报表计算。没有OLAP）。用过MySQL自带的MYISAM和列存储引擎Infobright。这篇文章总结了自己和团队在那段时间碰到的一些常见性能问题和解决方案。&lt;/p&gt;
 &lt;p&gt;P.S.如果没有特别指出，下面说的mysql都是指用MYISAM做存储引擎。&lt;/p&gt;
