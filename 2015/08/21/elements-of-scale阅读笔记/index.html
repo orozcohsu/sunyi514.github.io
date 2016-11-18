@@ -40,15 +40,15 @@
 
 
 <meta name="description" content="原文地址：http://www.benstopford.com/2015/04/28/elements-of-scale-composing-and-scaling-data-platforms/
-前两天看了下这篇文章（后面简称原文），感觉不错，原本打算完整的翻译一下，结果发现已经有人这么做了（传送门，不过有一些地方翻译存在问题）。所以还是写一篇总结性质的笔记吧。
-正文过去十年，技术界为了解决与数">
+这篇文章原本打算完整的翻译一下，结果发现已经有人这么做了（传送门，不过有一些地方翻译存在问题）。所以还是写一篇总结性质的笔记吧。
+正文过去十年，技术界为了解决与数据平台有关的问题，诞生了很多的方案。如今">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Elements of Scale阅读笔记">
 <meta property="og:url" content="http://sunyi514.github.io/2015/08/21/elements-of-scale阅读笔记/index.html">
 <meta property="og:site_name" content="奔跑的兔子">
 <meta property="og:description" content="原文地址：http://www.benstopford.com/2015/04/28/elements-of-scale-composing-and-scaling-data-platforms/
-前两天看了下这篇文章（后面简称原文），感觉不错，原本打算完整的翻译一下，结果发现已经有人这么做了（传送门，不过有一些地方翻译存在问题）。所以还是写一篇总结性质的笔记吧。
-正文过去十年，技术界为了解决与数">
+这篇文章原本打算完整的翻译一下，结果发现已经有人这么做了（传送门，不过有一些地方翻译存在问题）。所以还是写一篇总结性质的笔记吧。
+正文过去十年，技术界为了解决与数据平台有关的问题，诞生了很多的方案。如今">
 <meta property="og:image" content="http://benstopford.com/uploads/img/Slide04.png">
 <meta property="og:image" content="http://benstopford.com/uploads/img/Slide11.png">
 <meta property="og:image" content="http://benstopford.com/uploads/merge.png">
@@ -61,12 +61,12 @@
 <meta property="og:image" content="http://benstopford.com/uploads/sdp.jpg">
 <meta property="og:image" content="http://benstopford.com/uploads/conc1.jpg">
 <meta property="og:image" content="http://benstopford.com/uploads/conc2.jpg">
-<meta property="og:updated_time" content="2015-11-28T03:03:30.000Z">
+<meta property="og:updated_time" content="2016-11-13T02:09:54.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Elements of Scale阅读笔记">
 <meta name="twitter:description" content="原文地址：http://www.benstopford.com/2015/04/28/elements-of-scale-composing-and-scaling-data-platforms/
-前两天看了下这篇文章（后面简称原文），感觉不错，原本打算完整的翻译一下，结果发现已经有人这么做了（传送门，不过有一些地方翻译存在问题）。所以还是写一篇总结性质的笔记吧。
-正文过去十年，技术界为了解决与数">
+这篇文章原本打算完整的翻译一下，结果发现已经有人这么做了（传送门，不过有一些地方翻译存在问题）。所以还是写一篇总结性质的笔记吧。
+正文过去十年，技术界为了解决与数据平台有关的问题，诞生了很多的方案。如今">
 
 
 <script type="text/javascript" id="hexo.configuration">
@@ -259,7 +259,7 @@
 
       
         <span itemprop="articleBody"><p>原文地址：<a href="http://www.benstopford.com/2015/04/28/elements-of-scale-composing-and-scaling-data-platforms/" target="_blank" rel="external">http://www.benstopford.com/2015/04/28/elements-of-scale-composing-and-scaling-data-platforms/</a></p>
-<p>前两天看了下这篇文章（后面简称原文），感觉不错，原本打算完整的翻译一下，结果发现已经有人这么做了（<a href="http://blog.jobbole.com/88453/" target="_blank" rel="external">传送门</a>，不过有一些地方翻译存在问题）。所以还是写一篇总结性质的笔记吧。</p>
+<p>这篇文章原本打算完整的翻译一下，结果发现已经有人这么做了（<a href="http://blog.jobbole.com/88453/" target="_blank" rel="external">传送门</a>，不过有一些地方翻译存在问题）。所以还是写一篇总结性质的笔记吧。</p>
 <h1 id="正文">正文</h1><p>过去十年，技术界为了解决与数据平台有关的问题，诞生了很多的方案。如今的数据平台架构已经非常复杂。本文的内容就是剖析一下其中一些相对成熟有效，得到较广泛使用的方案背后的原理。</p>
 <h1 id="局部性">局部性</h1><p>所谓处理数据，其实就是如何去利用局部性。利用局部性可以让CPU做出预测，更好的缓存数据，因为可以做预读取。对于硬盘来说，顺序读取由于可以利用局部性，让数据缓存到disk buffer，page cache，L1~L3 cache等各个层级的缓存，而随机读则无法利用缓存（其实也会预读取，但是预读取的数据后面就用不到了，等同于失效），所以顺序读优于随机读。而且不仅如此，其实对于内存来说顺序读的速度也比随机读快一两个数量级，如果考虑GC的代价，差距更大。另外，磁盘顺序读比内存随机读速度还要快点（具体数据参考<a href="http://deliveryimages.acm.org/10.1145/1570000/1563874/jacobs3.jpg" target="_blank" rel="external">此图</a>）。虽然这几年SSD逐渐普及开来，表现出不太一样的特性（没有磁盘的寻道时间，所以随机IO速度快），但是在缓存这件事情上还是一样的。</p>
 <p><img src="http://benstopford.com/uploads/img/Slide04.png" alt="locality"></p>

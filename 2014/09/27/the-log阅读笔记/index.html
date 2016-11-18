@@ -39,14 +39,16 @@
   <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
 
 
-<meta name="description" content="几个月之前好几次看到有人在推荐Jay Kreps（后文中称其为“作者”）的这篇文章。最近做的项目用到了 kafka，顺便把这篇文章翻出来看一看。文章很长，所以写个笔记梳理一下，内容大体上按照原文的顺序，但是也做了一些调整以便符合自己的思路。
-Part 1：什么是loglog（日志）的定义其实很简单，就是按时间顺序依次保存的一系列记录，其实就是记录了系统依次发生了什么，强调有序性。这样简单的一个概念">
+<meta name="description" content="Jay Kreps的这篇文章算是“Log界”的著名文章了。文章很长，所以写个笔记梳理一下，内容大体上按照原文的顺序，但是也做了一些调整以便符合自己的思路。
+Part 1：什么是loglog（日志）的定义其实很简单，就是按时间顺序依次保存的一系列记录，其实就是记录了系统依次发生了什么，强调有序性。这样简单的一个概念，在数据系统中发挥了很大的作用，这个part余下的内容就说明了日志的基本用途。
+早期在">
 <meta property="og:type" content="article">
 <meta property="og:title" content="The Log阅读笔记">
 <meta property="og:url" content="http://sunyi514.github.io/2014/09/27/the-log阅读笔记/index.html">
 <meta property="og:site_name" content="奔跑的兔子">
-<meta property="og:description" content="几个月之前好几次看到有人在推荐Jay Kreps（后文中称其为“作者”）的这篇文章。最近做的项目用到了 kafka，顺便把这篇文章翻出来看一看。文章很长，所以写个笔记梳理一下，内容大体上按照原文的顺序，但是也做了一些调整以便符合自己的思路。
-Part 1：什么是loglog（日志）的定义其实很简单，就是按时间顺序依次保存的一系列记录，其实就是记录了系统依次发生了什么，强调有序性。这样简单的一个概念">
+<meta property="og:description" content="Jay Kreps的这篇文章算是“Log界”的著名文章了。文章很长，所以写个笔记梳理一下，内容大体上按照原文的顺序，但是也做了一些调整以便符合自己的思路。
+Part 1：什么是loglog（日志）的定义其实很简单，就是按时间顺序依次保存的一系列记录，其实就是记录了系统依次发生了什么，强调有序性。这样简单的一个概念，在数据系统中发挥了很大的作用，这个part余下的内容就说明了日志的基本用途。
+早期在">
 <meta property="og:image" content="http://7xltg5.com1.z0.glb.clouddn.com/active_and_passive_arch.png">
 <meta property="og:image" content="http://7xltg5.com1.z0.glb.clouddn.com/log_subscription.png">
 <meta property="og:image" content="http://7xltg5.com1.z0.glb.clouddn.com/datapipeline_complex.png">
@@ -56,11 +58,12 @@ Part 1：什么是loglog（日志）的定义其实很简单，就是按时间�
 <meta property="og:image" content="http://7xltg5.com1.z0.glb.clouddn.com/log_compaction_0.png">
 <meta property="og:image" content="http://7xltg5.com1.z0.glb.clouddn.com/storm_vs_smaza.jpg">
 <meta property="og:image" content="http://7xltg5.com1.z0.glb.clouddn.com/log_based_system.jpg">
-<meta property="og:updated_time" content="2015-10-17T12:09:02.000Z">
+<meta property="og:updated_time" content="2016-11-13T02:10:46.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="The Log阅读笔记">
-<meta name="twitter:description" content="几个月之前好几次看到有人在推荐Jay Kreps（后文中称其为“作者”）的这篇文章。最近做的项目用到了 kafka，顺便把这篇文章翻出来看一看。文章很长，所以写个笔记梳理一下，内容大体上按照原文的顺序，但是也做了一些调整以便符合自己的思路。
-Part 1：什么是loglog（日志）的定义其实很简单，就是按时间顺序依次保存的一系列记录，其实就是记录了系统依次发生了什么，强调有序性。这样简单的一个概念">
+<meta name="twitter:description" content="Jay Kreps的这篇文章算是“Log界”的著名文章了。文章很长，所以写个笔记梳理一下，内容大体上按照原文的顺序，但是也做了一些调整以便符合自己的思路。
+Part 1：什么是loglog（日志）的定义其实很简单，就是按时间顺序依次保存的一系列记录，其实就是记录了系统依次发生了什么，强调有序性。这样简单的一个概念，在数据系统中发挥了很大的作用，这个part余下的内容就说明了日志的基本用途。
+早期在">
 
 
 <script type="text/javascript" id="hexo.configuration">
@@ -252,7 +255,7 @@ Part 1：什么是loglog（日志）的定义其实很简单，就是按时间�
       
 
       
-        <span itemprop="articleBody"><p>几个月之前好几次看到有人在推荐Jay Kreps（后文中称其为“作者”）的<a href="http://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying" target="_blank" rel="external">这篇文章</a>。最近做的项目用到了 kafka，顺便把这篇文章翻出来看一看。文章很长，所以写个笔记梳理一下，内容大体上按照原文的顺序，但是也做了一些调整以便符合自己的思路。</p>
+        <span itemprop="articleBody"><p>Jay Kreps的<a href="http://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying" target="_blank" rel="external">这篇文章</a>算是“Log界”的著名文章了。文章很长，所以写个笔记梳理一下，内容大体上按照原文的顺序，但是也做了一些调整以便符合自己的思路。</p>
 <h1 id="Part_1：什么是log">Part 1：什么是log</h1><p>log（日志）的定义其实很简单，就是按时间顺序依次保存的一系列记录，其实就是记录了系统依次发生了什么，强调有序性。这样简单的一个概念，在数据系统中发挥了很大的作用，这个part余下的内容就说明了日志的基本用途。</p>
 <p>早期在关系数据库中，就大量使用log做ACID和replication。数据库replication使用的日志有两种格式，一种是sql based，记录操作请求，也叫逻辑日志；另一种是row based，记录数据变化，也叫物理日志。</p>
 <p>到了分布式系统大行其道的年代，日志也有类似用法。物理日志一般用在primary back up架构，有明确的Leader和Follower关系，只有Leader提供请求处理，然后处理结果变成日志重放到其他Follower节点。逻辑日志一般对应了state machine replication，节点之间通常是p2p架构，请求序列被抽象为日志，每条请求都会被发往各个节点进行处理。</p>
