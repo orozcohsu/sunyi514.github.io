@@ -86,14 +86,14 @@
 
 
 
-<meta name="description" content="自从hive出现之后，经过几年的发展，SQL on Hadoop相关的系统已经百花齐放，速度越来越快，功能也越来越齐全。本文并不是要去比较所谓“交互式查询哪家强”，而是试图梳理出一个统一的视角，来看看各家系统有哪些技术上相通之处。
-考虑到系统使用的广泛程度与成熟度，在具体举例时一般会拿Hive和Impala为例，当然在调研的过程中也会涉及到一些其他系统，如Spark SQL，Presto，TAJO">
+<meta name="description" content="自hive出现之后，经过几年的发展，SQL on Hadoop相关的系统已经百花齐放，速度越来越快，功能也越来越齐全。本文并不是要去比较所谓“交互式查询哪家强”，而是试图梳理出一个统一的视角，来看看各家系统有哪些技术上相通之处。
+考虑到系统使用的广泛程度与成熟度，在具体举例时一般会拿Hive和Impala为例，当然在调研的过程中也会涉及到一些其他系统，如Spark SQL，Presto，TAJO等">
 <meta property="og:type" content="article">
 <meta property="og:title" content="盘点SQL on Hadoop中用到的主要技术">
 <meta property="og:url" content="http://sunyi514.github.io/2014/11/15/盘点sql-on-hadoop中用到的主要技术/index.html">
 <meta property="og:site_name" content="奔跑的兔子">
-<meta property="og:description" content="自从hive出现之后，经过几年的发展，SQL on Hadoop相关的系统已经百花齐放，速度越来越快，功能也越来越齐全。本文并不是要去比较所谓“交互式查询哪家强”，而是试图梳理出一个统一的视角，来看看各家系统有哪些技术上相通之处。
-考虑到系统使用的广泛程度与成熟度，在具体举例时一般会拿Hive和Impala为例，当然在调研的过程中也会涉及到一些其他系统，如Spark SQL，Presto，TAJO">
+<meta property="og:description" content="自hive出现之后，经过几年的发展，SQL on Hadoop相关的系统已经百花齐放，速度越来越快，功能也越来越齐全。本文并不是要去比较所谓“交互式查询哪家强”，而是试图梳理出一个统一的视角，来看看各家系统有哪些技术上相通之处。
+考虑到系统使用的广泛程度与成熟度，在具体举例时一般会拿Hive和Impala为例，当然在调研的过程中也会涉及到一些其他系统，如Spark SQL，Presto，TAJO等">
 <meta property="og:image" content="http://7xltg5.com1.z0.glb.clouddn.com/sql_on_hadoop_arch.jpg">
 <meta property="og:image" content="http://7xltg5.com1.z0.glb.clouddn.com/hive_compile.jpg">
 <meta property="og:image" content="http://7xltg5.com1.z0.glb.clouddn.com/presto_compile.png">
@@ -103,11 +103,11 @@
 <meta property="og:image" content="http://7xltg5.com1.z0.glb.clouddn.com/parquet_nested.jpg">
 <meta property="og:image" content="http://7xltg5.com1.z0.glb.clouddn.com/dremel_data.jpg">
 <meta property="og:image" content="http://7xltg5.com1.z0.glb.clouddn.com/dremel_representation.jpg">
-<meta property="og:updated_time" content="2016-11-18T13:52:48.000Z">
+<meta property="og:updated_time" content="2016-11-19T13:00:15.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="盘点SQL on Hadoop中用到的主要技术">
-<meta name="twitter:description" content="自从hive出现之后，经过几年的发展，SQL on Hadoop相关的系统已经百花齐放，速度越来越快，功能也越来越齐全。本文并不是要去比较所谓“交互式查询哪家强”，而是试图梳理出一个统一的视角，来看看各家系统有哪些技术上相通之处。
-考虑到系统使用的广泛程度与成熟度，在具体举例时一般会拿Hive和Impala为例，当然在调研的过程中也会涉及到一些其他系统，如Spark SQL，Presto，TAJO">
+<meta name="twitter:description" content="自hive出现之后，经过几年的发展，SQL on Hadoop相关的系统已经百花齐放，速度越来越快，功能也越来越齐全。本文并不是要去比较所谓“交互式查询哪家强”，而是试图梳理出一个统一的视角，来看看各家系统有哪些技术上相通之处。
+考虑到系统使用的广泛程度与成熟度，在具体举例时一般会拿Hive和Impala为例，当然在调研的过程中也会涉及到一些其他系统，如Spark SQL，Presto，TAJO等">
 
 
 
@@ -320,7 +320,7 @@
       
 
       
-        <p>自从hive出现之后，经过几年的发展，SQL on Hadoop相关的系统已经百花齐放，速度越来越快，功能也越来越齐全。本文并不是要去比较所谓“交互式查询哪家强”，而是试图梳理出一个统一的视角，来看看各家系统有哪些技术上相通之处。</p>
+        <p>自hive出现之后，经过几年的发展，SQL on Hadoop相关的系统已经百花齐放，速度越来越快，功能也越来越齐全。本文并不是要去比较所谓“交互式查询哪家强”，而是试图梳理出一个统一的视角，来看看各家系统有哪些技术上相通之处。</p>
 <p>考虑到系统使用的广泛程度与成熟度，在具体举例时一般会拿Hive和Impala为例，当然在调研的过程中也会涉及到一些其他系统，如Spark SQL，Presto，TAJO等。而对于hawq这样的商业产品和apache drill这样成熟度还不是很高的开源方案就不做过多了解了。</p>
 <h1 id="系统架构">系统架构</h1><h2 id="runtime_framework_v-s-_mpp">runtime framework v.s. mpp</h2><p>在SQL on Hadoop系统中，有两种架构，一种是基于某个运行时框架来构建查询引擎，典型案例是Hive；另一种是仿照过去关系数据库的MPP架构。前者现有运行时框架，然后套上sql层，后者则是从头打造一个一体化的查询引擎。有时我们能听到一种声音，说后者的架构优于前者，至少在性能上。那么是否果真如此？</p>
 <p>一般来说，对于SQL on Hadoop系统很重要的一个评价指标就是：快。后面提到的所有内容也大多是为了查询速度更快。在Hive逐渐普及之后，就逐渐有了所谓交互式查询的需求，因为无论是BI系统，还是adhoc，都不能按照离线那种节奏玩。这时候无论是有实力的大公司（比如Facebook），还是专业的供应商（比如Cloudera），都试图去解决这个问题。短期可以靠商业方案或者关系数据库去支撑一下，但是长远的解决方案就是参考过去的MPP数据库架构打造一个专门的系统，于是就有了Impala，Presto等等。从任务执行的角度说，这类引擎的任务执行其实跟DAG模型是类似的，当时也有Spark这个DAG模型的计算框架了，但这终究是别人家的孩子，而且往Spark上套sql又是Hive的那种玩法了。于是在Impala问世之后就强调自己“计算全部在内存中完成”，性能也是各种碾压当时还只有MR作为计算模型的Hive。那么Hive所代表的“基于已有的计算模型”方式是否真的不行？</p>
