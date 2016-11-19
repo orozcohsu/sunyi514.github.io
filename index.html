@@ -1,11 +1,16 @@
 <!doctype html>
-<html class="theme-next use-motion theme-next-mist">
-<head>
+
+
+
   
 
-<meta charset="UTF-8"/>
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
 
 
 <meta http-equiv="Cache-Control" content="no-transform" />
@@ -18,17 +23,54 @@
 
 
 
-  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
 
 
 
 
-<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
 
 
 
 
-  <meta name="keywords" content="Hexo,next" />
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
 
 
 
@@ -36,7 +78,12 @@
 
 
 
-  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
 
 
 <meta name="description">
@@ -50,10 +97,18 @@
 <meta name="twitter:description">
 
 
+
 <script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
   var CONFIG = {
-    scheme: 'Mist',
-    sidebar: 'post'
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
   };
 </script>
 
@@ -62,16 +117,9 @@
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
 
-  <!--[if lte IE 8]>
-  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
-    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
-      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
-           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
-           style='margin-left:auto;margin-right:auto;display: block;'/>
-    </a>
-  </div>
-<![endif]-->
   
+
+
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
             (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -84,22 +132,34 @@
 
 
 
-  <div class="container one-column 
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left 
    page-home 
-">
+ ">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
-      <div class="header-inner"><h1 class="site-meta">
-  <span class="logo-line-before"><i></i></span>
-  <a href="/" class="brand" rel="start">
-      <span class="logo">
-        <i class="icon-next-logo"></i>
-      </span>
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
       <span class="site-title">奔跑的兔子</span>
-  </a>
-  <span class="logo-line-after"><i></i></span>
-</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
 
 <div class="site-nav-toggle">
   <button>
@@ -113,58 +173,39 @@
   
 
   
-    <ul id="menu" class="menu ">
+    <ul id="menu" class="menu">
       
         
         <li class="menu-item menu-item-home">
           <a href="/" rel="section">
-            <i class="menu-item-icon icon-next-home"></i> <br />
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
             首页
-          </a>
-        </li>
-      
-        
-        <li class="menu-item menu-item-categories">
-          <a href="/categories" rel="section">
-            <i class="menu-item-icon icon-next-categories"></i> <br />
-            分类
-          </a>
-        </li>
-      
-        
-        <li class="menu-item menu-item-tags">
-          <a href="/tags" rel="section">
-            <i class="menu-item-icon icon-next-tags"></i> <br />
-            标签
           </a>
         </li>
       
         
         <li class="menu-item menu-item-archives">
           <a href="/archives" rel="section">
-            <i class="menu-item-icon icon-next-archives"></i> <br />
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
             归档
           </a>
         </li>
       
         
-        <li class="menu-item menu-item-about">
-          <a href="/about" rel="section">
-            <i class="menu-item-icon icon-next-about"></i> <br />
-            关于
-          </a>
-        </li>
-      
-        
-        <li class="menu-item menu-item-rss">
-          <a href="/atom.xml" rel="section">
-            <i class="menu-item-icon icon-next-rss"></i> <br />
-            RSS
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
           </a>
         </li>
       
 
-      
       
     </ul>
   
@@ -177,74 +218,103 @@
 
     <main id="main" class="main">
       <div class="main-inner">
-        <div id="content" class="content"> 
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
   <section id="posts" class="posts-expand">
     
       
 
+  
+  
+
+  
+  
+  
+
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
 
-      
-      
-        <h1 class="post-title" itemprop="name headline">
-          
-          
-            
-              <a class="post-title-link" href="/2016/03/05/mcmc方法小记/" itemprop="url">
-                MCMC方法小记
-              </a>
-            
-          
-        </h1>
-      
-
-      <div class="post-meta">
-        <span class="post-time">
-          发表于
-          <time itemprop="dateCreated" datetime="2016-03-05T09:30:00+08:00" content="2016-03-05">
-            2016-03-05
-          </time>
-        </span>
+    
+      <header class="post-header">
 
         
-          <span class="post-category" >
-            &nbsp; | &nbsp; 分类于
+        
+          <h1 class="post-title" itemprop="name headline">
             
-              <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                <a href="/categories/data-mining/" itemprop="url" rel="index">
-                  <span itemprop="name">data mining</span>
+            
+              
+                
+                <a class="post-title-link" href="/2016/03/05/mcmc方法小记/" itemprop="url">
+                  MCMC方法小记
                 </a>
-              </span>
-
               
-              
-
             
-          </span>
+          </h1>
         
 
-        
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-03-05T09:30:00+08:00" content="2016-03-05">
+              2016-03-05
+            </time>
+          </span>
+
           
-            <span class="post-comments-count">
+            <span class="post-category" >
               &nbsp; | &nbsp;
-              <a href="/2016/03/05/mcmc方法小记/#comments" itemprop="discussionUrl">
-                <span class="post-comments-count ds-thread-count" data-thread-key="2016/03/05/mcmc方法小记/" itemprop="commentsCount"></span>
-              </a>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/data-mining/" itemprop="url" rel="index">
+                    <span itemprop="name">data mining</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
             </span>
           
-        
-      </div>
-    </header>
 
-    <div class="post-body">
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/03/05/mcmc方法小记/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/03/05/mcmc方法小记/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
 
       
       
 
       
         
-          <span itemprop="articleBody"><h1 id="采样">采样</h1><p>采样问题指的是给定一个特定的概率分布$p(z)$，得到一批符合这个概率分布的样本点。</p>
+          
+            <h1 id="采样">采样</h1><p>采样问题指的是给定一个特定的概率分布$p(z)$，得到一批符合这个概率分布的样本点。</p>
 <p>采样的方法有很多，MCMC是其中的一类方法，意思是利用Mento Carlo和Markov Chain完成采样。</p>
 <p>当然，要完成对各种分布的采样，有一个默认的假设，就是我们已经能够对均匀分布进行采样了(后面就专指范围为0-1的均匀分布)，也就是编程中通常会用到的伪随机数发生器，在各大编程语言中通常以random命名的模块/方法出现。</p>
 <h1 id="Mento_Carlo">Mento Carlo</h1><p>蒙特卡罗方法是一种通过在一定范围内均匀随机抽样来得到某个结果的计算方法。方法的大致思路框架是：</p>
@@ -351,8 +421,17 @@
 <li><a href="http://www.flickering.cn/%E6%95%B0%E5%AD%A6%E4%B9%8B%E7%BE%8E/2014/06/lda%E6%95%B0%E5%AD%A6%E5%85%AB%E5%8D%A6mcmc-%E5%92%8C-gibbs-sampling/" target="_blank" rel="external">LDA数学八卦</a></li>
 <li><a href="https://onlinecourses.science.psu.edu/stat414/node/118" target="_blank" rel="external">Penn State University STAT414 online course</a></li>
 </ol>
-</span>
+
+          
         
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
       
     </div>
 
@@ -372,69 +451,96 @@
     
       
 
+  
+  
+
+  
+  
+  
+
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
 
-      
-      
-        <h1 class="post-title" itemprop="name headline">
-          
-          
-            
-              <a class="post-title-link" href="/2015/08/21/elements-of-scale阅读笔记/" itemprop="url">
-                Elements of Scale阅读笔记
-              </a>
-            
-          
-        </h1>
-      
-
-      <div class="post-meta">
-        <span class="post-time">
-          发表于
-          <time itemprop="dateCreated" datetime="2015-08-21T20:22:12+08:00" content="2015-08-21">
-            2015-08-21
-          </time>
-        </span>
+    
+      <header class="post-header">
 
         
-          <span class="post-category" >
-            &nbsp; | &nbsp; 分类于
+        
+          <h1 class="post-title" itemprop="name headline">
             
-              <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                <a href="/categories/data-system/" itemprop="url" rel="index">
-                  <span itemprop="name">data system</span>
+            
+              
+                
+                <a class="post-title-link" href="/2015/08/21/elements-of-scale阅读笔记/" itemprop="url">
+                  Elements of Scale阅读笔记
                 </a>
-              </span>
-
               
-              
-
             
-          </span>
+          </h1>
         
 
-        
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-08-21T20:22:12+08:00" content="2015-08-21">
+              2015-08-21
+            </time>
+          </span>
+
           
-            <span class="post-comments-count">
+            <span class="post-category" >
               &nbsp; | &nbsp;
-              <a href="/2015/08/21/elements-of-scale阅读笔记/#comments" itemprop="discussionUrl">
-                <span class="post-comments-count ds-thread-count" data-thread-key="2015/08/21/elements-of-scale阅读笔记/" itemprop="commentsCount"></span>
-              </a>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/data-system/" itemprop="url" rel="index">
+                    <span itemprop="name">data system</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
             </span>
           
-        
-      </div>
-    </header>
 
-    <div class="post-body">
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/08/21/elements-of-scale阅读笔记/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/08/21/elements-of-scale阅读笔记/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
 
       
       
 
       
         
-          <span itemprop="articleBody"><p>原文地址：<a href="http://www.benstopford.com/2015/04/28/elements-of-scale-composing-and-scaling-data-platforms/" target="_blank" rel="external">http://www.benstopford.com/2015/04/28/elements-of-scale-composing-and-scaling-data-platforms/</a></p>
+          
+            <p>原文地址：<a href="http://www.benstopford.com/2015/04/28/elements-of-scale-composing-and-scaling-data-platforms/" target="_blank" rel="external">http://www.benstopford.com/2015/04/28/elements-of-scale-composing-and-scaling-data-platforms/</a></p>
 <p>这篇文章原本打算完整的翻译一下，结果发现已经有人这么做了（<a href="http://blog.jobbole.com/88453/" target="_blank" rel="external">传送门</a>，不过有一些地方翻译存在问题）。所以还是写一篇总结性质的笔记吧。</p>
 <h1 id="正文">正文</h1><p>过去十年，技术界为了解决与数据平台有关的问题，诞生了很多的方案。如今的数据平台架构已经非常复杂。本文的内容就是剖析一下其中一些相对成熟有效，得到较广泛使用的方案背后的原理。</p>
 <h1 id="局部性">局部性</h1><p>所谓处理数据，其实就是如何去利用局部性。利用局部性可以让CPU做出预测，更好的缓存数据，因为可以做预读取。对于硬盘来说，顺序读取由于可以利用局部性，让数据缓存到disk buffer，page cache，L1~L3 cache等各个层级的缓存，而随机读则无法利用缓存（其实也会预读取，但是预读取的数据后面就用不到了，等同于失效），所以顺序读优于随机读。而且不仅如此，其实对于内存来说顺序读的速度也比随机读快一两个数量级，如果考虑GC的代价，差距更大。另外，磁盘顺序读比内存随机读速度还要快点（具体数据参考<a href="http://deliveryimages.acm.org/10.1145/1570000/1563874/jacobs3.jpg" target="_blank" rel="external">此图</a>）。虽然这几年SSD逐渐普及开来，表现出不太一样的特性（没有磁盘的寻道时间，所以随机IO速度快），但是在缓存这件事情上还是一样的。</p>
@@ -488,8 +594,17 @@
 <p>系统中还会有一些别的问题要小心，原文中没有专门讲，一个是数据库schema对数据写入的约束（小图2，意思是写入时的检查），另一个是由分布式系统，尤其是异步环境下带来的时钟问题（小图7，会影响到并发顺序）。不过认真对待，还是能搞定的。</p>
 <p>未来一定还会出现更多的解决方案，逐步融合到现有的数据平台中，解决更多已有或未知的问题。</p>
 <p><img src="http://benstopford.com/uploads/conc1.jpg" alt="summary1"><br><img src="http://benstopford.com/uploads/conc2.jpg" alt="summary2"></p>
-</span>
+
+          
         
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
       
     </div>
 
@@ -509,69 +624,96 @@
     
       
 
+  
+  
+
+  
+  
+  
+
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
 
-      
-      
-        <h1 class="post-title" itemprop="name headline">
-          
-          
-            
-              <a class="post-title-link" href="/2015/03/28/hadoop安装手记/" itemprop="url">
-                Hadoop安装手记
-              </a>
-            
-          
-        </h1>
-      
-
-      <div class="post-meta">
-        <span class="post-time">
-          发表于
-          <time itemprop="dateCreated" datetime="2015-03-28T17:28:11+08:00" content="2015-03-28">
-            2015-03-28
-          </time>
-        </span>
+    
+      <header class="post-header">
 
         
-          <span class="post-category" >
-            &nbsp; | &nbsp; 分类于
+        
+          <h1 class="post-title" itemprop="name headline">
             
-              <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                <a href="/categories/data-system/" itemprop="url" rel="index">
-                  <span itemprop="name">data system</span>
+            
+              
+                
+                <a class="post-title-link" href="/2015/03/28/hadoop安装手记/" itemprop="url">
+                  Hadoop安装手记
                 </a>
-              </span>
-
               
-              
-
             
-          </span>
+          </h1>
         
 
-        
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-03-28T17:28:11+08:00" content="2015-03-28">
+              2015-03-28
+            </time>
+          </span>
+
           
-            <span class="post-comments-count">
+            <span class="post-category" >
               &nbsp; | &nbsp;
-              <a href="/2015/03/28/hadoop安装手记/#comments" itemprop="discussionUrl">
-                <span class="post-comments-count ds-thread-count" data-thread-key="2015/03/28/hadoop安装手记/" itemprop="commentsCount"></span>
-              </a>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/data-system/" itemprop="url" rel="index">
+                    <span itemprop="name">data system</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
             </span>
           
-        
-      </div>
-    </header>
 
-    <div class="post-body">
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/03/28/hadoop安装手记/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/03/28/hadoop安装手记/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
 
       
       
 
       
         
-          <span itemprop="articleBody"><p>写在前面：本文中的安装环境是Mac，仅仅是为了学习了解，所以以快速把系统跑起来为目的，参数尽可能用默认配置。另外本文写作时间跨度较长，中间有相当时间的间隔，所以会出现不同版本的hadoop。</p>
+          
+            <p>写在前面：本文中的安装环境是Mac，仅仅是为了学习了解，所以以快速把系统跑起来为目的，参数尽可能用默认配置。另外本文写作时间跨度较长，中间有相当时间的间隔，所以会出现不同版本的hadoop。</p>
 <h1 id="设置SSH">设置SSH</h1><p>单节点运行hadoop需要本机ssh连通。生成key的过程没什么特殊的：</p>
 <figure class="highlight ruby"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t rsa</span><br><span class="line">cat .ssh/id_rsa.pub <span class="prompt">&gt;&gt;</span>.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
 <p>然后需要开启ssh服务，具体设置在“系统偏好设置-&gt;共享-&gt;远程登录”，把这个勾上即可。</p>
@@ -642,8 +784,17 @@
 <figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="title">yarn</span> historyserver</span><br></pre></td></tr></table></figure>
 <p>这样就可以打开默认界面<code>localhost:8188</code>，所有之前运行的mr和spark任务都已经可以在界面上看到：</p>
 <p> <img src="http://7xltg5.com1.z0.glb.clouddn.com/hadoop-timeline.jpg" alt="hadoop-timeline"></p>
-</span>
+
+          
         
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
       
     </div>
 
@@ -663,69 +814,96 @@
     
       
 
+  
+  
+
+  
+  
+  
+
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
 
-      
-      
-        <h1 class="post-title" itemprop="name headline">
-          
-          
-            
-              <a class="post-title-link" href="/2014/11/15/盘点sql-on-hadoop中用到的主要技术/" itemprop="url">
-                盘点SQL on Hadoop中用到的主要技术
-              </a>
-            
-          
-        </h1>
-      
-
-      <div class="post-meta">
-        <span class="post-time">
-          发表于
-          <time itemprop="dateCreated" datetime="2014-11-15T14:41:30+08:00" content="2014-11-15">
-            2014-11-15
-          </time>
-        </span>
+    
+      <header class="post-header">
 
         
-          <span class="post-category" >
-            &nbsp; | &nbsp; 分类于
+        
+          <h1 class="post-title" itemprop="name headline">
             
-              <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                <a href="/categories/data-system/" itemprop="url" rel="index">
-                  <span itemprop="name">data system</span>
+            
+              
+                
+                <a class="post-title-link" href="/2014/11/15/盘点sql-on-hadoop中用到的主要技术/" itemprop="url">
+                  盘点SQL on Hadoop中用到的主要技术
                 </a>
-              </span>
-
               
-              
-
             
-          </span>
+          </h1>
         
 
-        
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2014-11-15T14:41:30+08:00" content="2014-11-15">
+              2014-11-15
+            </time>
+          </span>
+
           
-            <span class="post-comments-count">
+            <span class="post-category" >
               &nbsp; | &nbsp;
-              <a href="/2014/11/15/盘点sql-on-hadoop中用到的主要技术/#comments" itemprop="discussionUrl">
-                <span class="post-comments-count ds-thread-count" data-thread-key="2014/11/15/盘点sql-on-hadoop中用到的主要技术/" itemprop="commentsCount"></span>
-              </a>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/data-system/" itemprop="url" rel="index">
+                    <span itemprop="name">data system</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
             </span>
           
-        
-      </div>
-    </header>
 
-    <div class="post-body">
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2014/11/15/盘点sql-on-hadoop中用到的主要技术/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2014/11/15/盘点sql-on-hadoop中用到的主要技术/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
 
       
       
 
       
         
-          <span itemprop="articleBody"><p>自从hive出现之后，经过几年的发展，SQL on Hadoop相关的系统已经百花齐放，速度越来越快，功能也越来越齐全。本文并不是要去比较所谓“交互式查询哪家强”，而是试图梳理出一个统一的视角，来看看各家系统有哪些技术上相通之处。</p>
+          
+            <p>自从hive出现之后，经过几年的发展，SQL on Hadoop相关的系统已经百花齐放，速度越来越快，功能也越来越齐全。本文并不是要去比较所谓“交互式查询哪家强”，而是试图梳理出一个统一的视角，来看看各家系统有哪些技术上相通之处。</p>
 <p>考虑到系统使用的广泛程度与成熟度，在具体举例时一般会拿Hive和Impala为例，当然在调研的过程中也会涉及到一些其他系统，如Spark SQL，Presto，TAJO等。而对于hawq这样的商业产品和apache drill这样成熟度还不是很高的开源方案就不做过多了解了。</p>
 <h1 id="系统架构">系统架构</h1><h2 id="runtime_framework_v-s-_mpp">runtime framework v.s. mpp</h2><p>在SQL on Hadoop系统中，有两种架构，一种是基于某个运行时框架来构建查询引擎，典型案例是Hive；另一种是仿照过去关系数据库的MPP架构。前者现有运行时框架，然后套上sql层，后者则是从头打造一个一体化的查询引擎。有时我们能听到一种声音，说后者的架构优于前者，至少在性能上。那么是否果真如此？</p>
 <p>一般来说，对于SQL on Hadoop系统很重要的一个评价指标就是：快。后面提到的所有内容也大多是为了查询速度更快。在Hive逐渐普及之后，就逐渐有了所谓交互式查询的需求，因为无论是BI系统，还是adhoc，都不能按照离线那种节奏玩。这时候无论是有实力的大公司（比如Facebook），还是专业的供应商（比如Cloudera），都试图去解决这个问题。短期可以靠商业方案或者关系数据库去支撑一下，但是长远的解决方案就是参考过去的MPP数据库架构打造一个专门的系统，于是就有了Impala，Presto等等。从任务执行的角度说，这类引擎的任务执行其实跟DAG模型是类似的，当时也有Spark这个DAG模型的计算框架了，但这终究是别人家的孩子，而且往Spark上套sql又是Hive的那种玩法了。于是在Impala问世之后就强调自己“计算全部在内存中完成”，性能也是各种碾压当时还只有MR作为计算模型的Hive。那么Hive所代表的“基于已有的计算模型”方式是否真的不行？</p>
@@ -827,8 +1005,17 @@
 <li>甚至对于像CBO这样的领域，开源界拿出来的东西还算是刚刚起步，相比HAWQ中的ORCA这种商业系统提供的优化器还差的很多。</li>
 </ul>
 <p>毕竟相比已经比较成熟的关系数据库，分布式环境下需要解决的问题更多，未来一定还会出现很多精彩的技术实践，让我们在海量数据中更快更方便的查到想要的数据。</p>
-</span>
+
+          
         
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
       
     </div>
 
@@ -848,69 +1035,96 @@
     
       
 
+  
+  
+
+  
+  
+  
+
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
 
-      
-      
-        <h1 class="post-title" itemprop="name headline">
-          
-          
-            
-              <a class="post-title-link" href="/2014/09/27/the-log阅读笔记/" itemprop="url">
-                The Log阅读笔记
-              </a>
-            
-          
-        </h1>
-      
-
-      <div class="post-meta">
-        <span class="post-time">
-          发表于
-          <time itemprop="dateCreated" datetime="2014-09-27T10:20:41+08:00" content="2014-09-27">
-            2014-09-27
-          </time>
-        </span>
+    
+      <header class="post-header">
 
         
-          <span class="post-category" >
-            &nbsp; | &nbsp; 分类于
+        
+          <h1 class="post-title" itemprop="name headline">
             
-              <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                <a href="/categories/data-system/" itemprop="url" rel="index">
-                  <span itemprop="name">data system</span>
+            
+              
+                
+                <a class="post-title-link" href="/2014/09/27/the-log阅读笔记/" itemprop="url">
+                  The Log阅读笔记
                 </a>
-              </span>
-
               
-              
-
             
-          </span>
+          </h1>
         
 
-        
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2014-09-27T10:20:41+08:00" content="2014-09-27">
+              2014-09-27
+            </time>
+          </span>
+
           
-            <span class="post-comments-count">
+            <span class="post-category" >
               &nbsp; | &nbsp;
-              <a href="/2014/09/27/the-log阅读笔记/#comments" itemprop="discussionUrl">
-                <span class="post-comments-count ds-thread-count" data-thread-key="2014/09/27/the-log阅读笔记/" itemprop="commentsCount"></span>
-              </a>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/data-system/" itemprop="url" rel="index">
+                    <span itemprop="name">data system</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
             </span>
           
-        
-      </div>
-    </header>
 
-    <div class="post-body">
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2014/09/27/the-log阅读笔记/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2014/09/27/the-log阅读笔记/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
 
       
       
 
       
         
-          <span itemprop="articleBody"><p>Jay Kreps的<a href="http://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying" target="_blank" rel="external">这篇文章</a>算是“Log界”的著名文章了。文章很长，所以写个笔记梳理一下，内容大体上按照原文的顺序，但是也做了一些调整以便符合自己的思路。</p>
+          
+            <p>Jay Kreps的<a href="http://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying" target="_blank" rel="external">这篇文章</a>算是“Log界”的著名文章了。文章很长，所以写个笔记梳理一下，内容大体上按照原文的顺序，但是也做了一些调整以便符合自己的思路。</p>
 <h1 id="Part_1：什么是log">Part 1：什么是log</h1><p>log（日志）的定义其实很简单，就是按时间顺序依次保存的一系列记录，其实就是记录了系统依次发生了什么，强调有序性。这样简单的一个概念，在数据系统中发挥了很大的作用，这个part余下的内容就说明了日志的基本用途。</p>
 <p>早期在关系数据库中，就大量使用log做ACID和replication。数据库replication使用的日志有两种格式，一种是sql based，记录操作请求，也叫逻辑日志；另一种是row based，记录数据变化，也叫物理日志。</p>
 <p>到了分布式系统大行其道的年代，日志也有类似用法。物理日志一般用在primary back up架构，有明确的Leader和Follower关系，只有Leader提供请求处理，然后处理结果变成日志重放到其他Follower节点。逻辑日志一般对应了state machine replication，节点之间通常是p2p架构，请求序列被抽象为日志，每条请求都会被发往各个节点进行处理。</p>
@@ -957,8 +1171,17 @@
 <p>可能有人会质疑用户请求写入日志浪费磁盘资源，但这恰恰符合kafka的设计理念：don’t fear the file system。因为这里有一个前提，就是日志是顺序读，性能不比内存随机读差，硬件方面也可以用大硬盘。而且文件系统读写时OS会有page cache，非常稳定，相比之下数据保存在内存的方案用的都是进程的内存，稳定性可能欠佳，比如jvm平台上会有GC问题。</p>
 <p>Linkedin就是根据这个思路搭建的实际架构（上右图），从某种角度来说，serving层的各种系统只是日志流的一层cache而已。</p>
 <h1 id="结语">结语</h1><p>作者在文末列举了很多的参考资料，如果想进一步了解，请移步至<a href="http://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying" target="_blank" rel="external">原文</a>查看。</p>
-</span>
+
+          
         
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
       
     </div>
 
@@ -978,69 +1201,96 @@
     
       
 
+  
+  
+
+  
+  
+  
+
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
 
-      
-      
-        <h1 class="post-title" itemprop="name headline">
-          
-          
-            
-              <a class="post-title-link" href="/2013/09/01/数据仓库中的sql性能优化（hive篇）/" itemprop="url">
-                数据仓库中的SQL性能优化（Hive篇）
-              </a>
-            
-          
-        </h1>
-      
-
-      <div class="post-meta">
-        <span class="post-time">
-          发表于
-          <time itemprop="dateCreated" datetime="2013-09-01T18:01:52+08:00" content="2013-09-01">
-            2013-09-01
-          </time>
-        </span>
+    
+      <header class="post-header">
 
         
-          <span class="post-category" >
-            &nbsp; | &nbsp; 分类于
+        
+          <h1 class="post-title" itemprop="name headline">
             
-              <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                <a href="/categories/data-system/" itemprop="url" rel="index">
-                  <span itemprop="name">data system</span>
+            
+              
+                
+                <a class="post-title-link" href="/2013/09/01/数据仓库中的sql性能优化（hive篇）/" itemprop="url">
+                  数据仓库中的SQL性能优化（Hive篇）
                 </a>
-              </span>
-
               
-              
-
             
-          </span>
+          </h1>
         
 
-        
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2013-09-01T18:01:52+08:00" content="2013-09-01">
+              2013-09-01
+            </time>
+          </span>
+
           
-            <span class="post-comments-count">
+            <span class="post-category" >
               &nbsp; | &nbsp;
-              <a href="/2013/09/01/数据仓库中的sql性能优化（hive篇）/#comments" itemprop="discussionUrl">
-                <span class="post-comments-count ds-thread-count" data-thread-key="2013/09/01/数据仓库中的sql性能优化（hive篇）/" itemprop="commentsCount"></span>
-              </a>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/data-system/" itemprop="url" rel="index">
+                    <span itemprop="name">data system</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
             </span>
           
-        
-      </div>
-    </header>
 
-    <div class="post-body">
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2013/09/01/数据仓库中的sql性能优化（hive篇）/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2013/09/01/数据仓库中的sql性能优化（hive篇）/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
 
       
       
 
       
         
-          <span itemprop="articleBody"><p>一个Hive查询生成多个map reduce job，一个map reduce job又有map，reduce，spill，shuffle，sort等多个阶段，所以针对hive查询的优化可以大致分为针对MR中单个步骤的优化（其中又会有细分），针对MR全局的优化，和针对整个查询（多MR job）的优化，下文会分别阐述。</p>
+          
+            <p>一个Hive查询生成多个map reduce job，一个map reduce job又有map，reduce，spill，shuffle，sort等多个阶段，所以针对hive查询的优化可以大致分为针对MR中单个步骤的优化（其中又会有细分），针对MR全局的优化，和针对整个查询（多MR job）的优化，下文会分别阐述。</p>
 <p><img src="http://7xltg5.com1.z0.glb.clouddn.com/hive_opt_section.jpg" alt="hive_opt_section"></p>
 <p>在开始之前，先把MR的流程图帖出来（摘自Hadoop权威指南），方便后面对照。本文写作时，使用hive0.9版本 + hadoop 1.x版本。</p>
 <p><img src="http://7xltg5.com1.z0.glb.clouddn.com/mr.jpg" alt="mr process"></p>
@@ -1153,8 +1403,17 @@
 <p><strong>2015.01 updated:</strong> 最近本文被CSDN<a href="http://www.csdn.net/article/2015-01-13/2823530" target="_blank" rel="external">转载</a>。时隔一年多，hive已经有了很多变化，当然本文中的方法都还是适用的。本文中的一些内容（比如存储格式）已经有了更好的解决办法，在我比较新的blog中也有间接的体现。但是碍于精力有限，不会专门在本文中更新相关内容了。另外有网友指出原来文章中最后一段代码是有问题的，经检查确实是我的疏忽，描述也略有问题，现已在本文中改正。当然原有代码体现出来的思路是没有问题的，主要是语法细节的错误。</p>
 <p><strong>2015.12 updated:</strong> 更新了关于<code>hive.map.aggr</code>的解释，并且补充了因为对字段人为编码而造成的数据倾斜的案例。</p>
 <p><strong>2016.10 updated:</strong> 增加top n小节，并且补充了shuffle中OOM问题的常见解决方法。</p>
-</span>
+
+          
         
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
       
     </div>
 
@@ -1174,69 +1433,96 @@
     
       
 
+  
+  
+
+  
+  
+  
+
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
 
-      
-      
-        <h1 class="post-title" itemprop="name headline">
-          
-          
-            
-              <a class="post-title-link" href="/2013/04/30/数据仓库中的sql性能优化（mysql篇）/" itemprop="url">
-                数据仓库中的SQL性能优化（MySQL篇）
-              </a>
-            
-          
-        </h1>
-      
-
-      <div class="post-meta">
-        <span class="post-time">
-          发表于
-          <time itemprop="dateCreated" datetime="2013-04-30T17:46:17+08:00" content="2013-04-30">
-            2013-04-30
-          </time>
-        </span>
+    
+      <header class="post-header">
 
         
-          <span class="post-category" >
-            &nbsp; | &nbsp; 分类于
+        
+          <h1 class="post-title" itemprop="name headline">
             
-              <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                <a href="/categories/data-system/" itemprop="url" rel="index">
-                  <span itemprop="name">data system</span>
+            
+              
+                
+                <a class="post-title-link" href="/2013/04/30/数据仓库中的sql性能优化（mysql篇）/" itemprop="url">
+                  数据仓库中的SQL性能优化（MySQL篇）
                 </a>
-              </span>
-
               
-              
-
             
-          </span>
+          </h1>
         
 
-        
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2013-04-30T17:46:17+08:00" content="2013-04-30">
+              2013-04-30
+            </time>
+          </span>
+
           
-            <span class="post-comments-count">
+            <span class="post-category" >
               &nbsp; | &nbsp;
-              <a href="/2013/04/30/数据仓库中的sql性能优化（mysql篇）/#comments" itemprop="discussionUrl">
-                <span class="post-comments-count ds-thread-count" data-thread-key="2013/04/30/数据仓库中的sql性能优化（mysql篇）/" itemprop="commentsCount"></span>
-              </a>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/data-system/" itemprop="url" rel="index">
+                    <span itemprop="name">data system</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
             </span>
           
-        
-      </div>
-    </header>
 
-    <div class="post-body">
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2013/04/30/数据仓库中的sql性能优化（mysql篇）/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2013/04/30/数据仓库中的sql性能优化（mysql篇）/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
 
       
       
 
       
         
-          <span itemprop="articleBody"><p>做数据仓库的头两年，使用高配置单机 + MySQL的方式来实现所有的计算（包括数据的ETL，以及报表计算。没有OLAP）。用过MySQL自带的MYISAM和列存储引擎Infobright。这篇文章总结了自己和团队在那段时间碰到的一些常见性能问题和解决方案。</p>
+          
+            <p>做数据仓库的头两年，使用高配置单机 + MySQL的方式来实现所有的计算（包括数据的ETL，以及报表计算。没有OLAP）。用过MySQL自带的MYISAM和列存储引擎Infobright。这篇文章总结了自己和团队在那段时间碰到的一些常见性能问题和解决方案。</p>
 <p>P.S.如果没有特别指出，下面说的mysql都是指用MYISAM做存储引擎。</p>
 <h1 id="利用已有数据，避免重复计算">利用已有数据，避免重复计算</h1><p>业务需求中往往有计算一周/一个月的某某数据，比如计算最近一周某个特定页面的PV/UV。这里出现的问题就是实现的时候直接取整周的日志数据，然后进行计算。这样其实就出现了重复计算，某一天的数据在不同的日子里被重复计算了7次。</p>
 <p>解决办法非常之简单，就是把计算进行切分，如果是算PV，做法就是每天算好当天的PV，那么一周的PV就把算好的7天的PV相加。如果是算UV，那么每天从日志数据取出相应的访客数据，把最近七天的访客数据单独保存在一个表里面，计算周UV的时候直接用这个表做计算，而不需要从原始日志数据中抓上一大把数据来算了。</p>
@@ -1684,8 +1970,17 @@
 <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">select</span> <span class="keyword">count</span>(*) <span class="keyword">from</span> <span class="keyword">log</span> <span class="keyword">where</span> <span class="keyword">url</span> <span class="keyword">like</span> <span class="string">'%mysql%'</span>;</span></span><br></pre></td></tr></table></figure>
 <p>类似这样在一个长字符串里面检索子串的需求，Infobright的执行时间测试下来是myisam的1.5-3倍。<br>至于速度慢的原因，这里给出一个简要的解释：Infobright作为列式数据库使用了列存储的常用特性，就是压缩（列式数据库的压缩率一般要能做到10%以内，Infobright也不例外）。另外为了加快查找速度，它还使用了一种叫知识网格检索方式，一般情况下能够极大的减少需要读取的数据量。关于知识网格的原理已经超出了本篇文章的讨论篇幅，可以看<a href="http://www.cnblogs.com/inmanhust/archive/2010/05/08/1730343.html" target="_blank" rel="external">这里</a>了解。但是在查询url的时候，知识网格的优点无法体现出来，但是使用知识网格本身带来的检索代价和解压长字符串的代价却仍然存在，而且比查询一般的数字类字段要来的大的多。</p>
 <p>解决办法有几种，比如<a href="http://www.infobright.org/images/uploads/blogs/how-to/How_To_Efficiently_Search_Strings_in_Infobright.pdf" target="_blank" rel="external">官方的方案</a>是把长字符串MD5成一个数字，查询的时候加上数字作为补充查询条件。而<a href="http://weibo.com/1699016425/zzPJbzQFz" target="_blank" rel="external">这条微博</a>给出的方法是进行分词然后再整数化。这些方案相对来说比较复杂，而我尝试过一种简单的解决方案（不过也有相当的局限性），就是根据这个长字段排序后再导入。这样一来按照该字段查询时，通过知识网格就能够屏蔽掉比较多的“数据包”（Infobright的数据压缩单元），而未排序的情况下符合条件的数据散布在各个“数据包”中，其解压工作量就大得多了。使用这个方法进行查询，测试下来其执行时间就只有mysql的0.5倍左右了。 </p>
-</span>
+
+          
         
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
       
     </div>
 
@@ -1706,14 +2001,17 @@
   </section>
 
   
- </div>
 
+
+          </div>
+          
+
+
+          
+
+        </div>
         
-
-        
-      </div>
-
-      
+          
   
   <div class="sidebar-toggle">
     <div class="sidebar-toggle-line-wrap">
@@ -1728,12 +2026,16 @@
 
       
 
-      <section class="site-overview">
+      
+
+      <section class="site-overview sidebar-panel  sidebar-panel-active ">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-          <img class="site-author-image" src="http://7xltg5.com1.z0.glb.clouddn.com/author.jpg" alt="奔跑的兔子" itemprop="image"/>
+          <img class="site-author-image" itemprop="image"
+               src="http://7xltg5.com1.z0.glb.clouddn.com/author.jpg"
+               alt="奔跑的兔子" />
           <p class="site-author-name" itemprop="name">奔跑的兔子</p>
+          <p class="site-description motion-element" itemprop="description"></p>
         </div>
-        <p class="site-description motion-element" itemprop="description"></p>
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
@@ -1742,26 +2044,30 @@
             </a>
           </div>
 
-          <div class="site-state-item site-state-categories">
-            <a href="/categories">
-              <span class="site-state-item-count">2</span>
-              <span class="site-state-item-name">分类</span>
-              </a>
-          </div>
+          
+            <div class="site-state-item site-state-categories">
+              
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">分类</span>
+              
+            </div>
+          
 
-          <div class="site-state-item site-state-tags">
-            <a href="/tags">
-              <span class="site-state-item-count">11</span>
-              <span class="site-state-item-name">标签</span>
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-name">标签</span>
               </a>
-          </div>
+            </div>
+          
 
         </nav>
 
         
           <div class="feed-link motion-element">
             <a href="/atom.xml" rel="alternate">
-              <i class="menu-item-icon icon-next-feed"></i>
+              <i class="fa fa-rss"></i>
               RSS
             </a>
           </div>
@@ -1771,7 +2077,12 @@
           
             
               <span class="links-of-author-item">
-                <a href="http://weibo.com/u/1731546452" target="_blank">weibo</a>
+                <a href="http://weibo.com/u/1731546452" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
               </span>
             
           
@@ -1780,9 +2091,8 @@
         
         
 
-        <div class="links-of-author motion-element">
-          
-        </div>
+        
+        
 
       </section>
 
@@ -1792,15 +2102,18 @@
   </aside>
 
 
+        
+      </div>
     </main>
 
     <footer id="footer" class="footer">
-      <div class="footer-inner"> <div class="copyright" >
+      <div class="footer-inner">
+        <div class="copyright" >
   
-  &copy; &nbsp;  2013 - 
+  &copy;  2013 - 
   <span itemprop="copyrightYear">2016</span>
   <span class="with-love">
-    <i class="icon-next-heart"></i>
+    <i class="fa fa-heart"></i>
   </span>
   <span class="author" itemprop="copyrightHolder">奔跑的兔子</span>
 </div>
@@ -1812,23 +2125,82 @@
 <div class="theme-info">
   主题 -
   <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
-    NexT.Mist
+    NexT.Muse
   </a>
 </div>
 
+        
 
- </div>
+        
+      </div>
     </footer>
 
-    <div class="back-to-top"></div>
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
   </div>
 
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
   <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
 
   
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
   
   
-    
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
 
   
     
@@ -1839,68 +2211,30 @@
     (function() {
       var ds = document.createElement('script');
       ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
       ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
       ds.charset = 'UTF-8';
       (document.getElementsByTagName('head')[0]
       || document.getElementsByTagName('body')[0]).appendChild(ds);
     })();
   </script>
-    
-     
-     
-  	<script src="/js/ua-parser.min.js"></script>
-  	<script src="/js/hook-duoshuo.js"></script>
-  
 
+  
     
   
-  
-  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
-  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
-
-
-  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
-  
-
-  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
-  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
-
-  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
 
 
 
 
-  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
-  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
 
   
-
-  <script type="text/javascript">
-    $(document).ready(function () {
-      if (CONFIG.sidebar === 'always') {
-        displaySidebar();
-      }
-      if (isMobile()) {
-        FastClick.attach(document.body);
-      }
-    });
-  </script>
-
-  
-
   
   
 
   
-  <script type="text/javascript" src="/js/lazyload.js"></script>
-  <script type="text/javascript">
-    $(function () {
-      $("#posts").find('img').lazyload({
-        placeholder: "/images/loading.gif",
-        effect: "fadeIn"
-      });
-    });
-  </script>
+
+  
+
 
 <!-- Begin: Injected MathJax -->
 <script type="text/x-mathjax-config">
